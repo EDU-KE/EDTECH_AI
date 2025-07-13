@@ -8,6 +8,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {validateAndFormatResponse} from '@/ai/response-formatter';
+import {deepseekChat} from 'genkitx-deepseek';
 import {z} from 'genkit';
 
 const GenerateSchemeOfWorkInputSchema = z.object({
@@ -29,7 +31,11 @@ export async function generateSchemeOfWork(input: GenerateSchemeOfWorkInput): Pr
 const prompt = ai.definePrompt({
   name: 'generateSchemeOfWorkPrompt',
   input: {schema: GenerateSchemeOfWorkInputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   output: {schema: GenerateSchemeOfWorkOutputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   prompt: `You are an experienced head of department. Create a detailed scheme of work for the specified subject and grade level.
 
   The scheme should be broken down week-by-week for the entire term duration. For each week, include the main topic, key learning objectives, and suggested teaching and assessment activities. Format the output as clean Markdown.
@@ -49,6 +55,15 @@ const generateSchemeOfWorkFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    const result = output || {};
+    const formattedResult = {};
+    for (const [key, value] of Object.entries(result)) {
+      if (typeof value === 'string') {
+        formattedResult[key] = validateAndFormatResponse(value, 'general');
+      } else {
+        formattedResult[key] = value;
+      }
+    }
+    return formattedResult as any;;
   }
 );

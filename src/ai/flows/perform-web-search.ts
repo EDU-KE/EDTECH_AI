@@ -8,8 +8,9 @@
  * - PerformWebSearchOutput - The return type for the function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { generateWithDeepSeekAPI, EDUCATIONAL_SYSTEM_PROMPTS, createEducationalPrompt, RESPONSE_FORMATS } from '@/ai/deepseek-api-handler';
+import { WebSearchResponseSchema } from '@/ai/ai-response-schemas';
+import { z } from 'genkit';
 
 const PerformWebSearchInputSchema = z.object({
   query: z.string().describe("The user's search query."),
@@ -22,28 +23,41 @@ const PerformWebSearchOutputSchema = z.object({
 export type PerformWebSearchOutput = z.infer<typeof PerformWebSearchOutputSchema>;
 
 export async function performWebSearch(input: PerformWebSearchInput): Promise<PerformWebSearchOutput> {
-  return performWebSearchFlow(input);
-}
+  try {
+    const userPrompt = createEducationalPrompt(
+      `Act as a research assistant. Provide a comprehensive summary for the query: "${input.query}".
 
-const performWebSearchFlow = ai.defineFlow(
-  {
-    name: 'performWebSearchFlow',
-    inputSchema: PerformWebSearchInputSchema,
-    outputSchema: PerformWebSearchOutputSchema,
-  },
-  async (input) => {
-    const searchResult = await ai.generate({
-      prompt: `Act as a research assistant. Provide a comprehensive summary for the query: "${input.query}". The summary should be neutral, informative, and easy for a student to understand. Structure the output using Markdown, including headings, bullet points, and bold text for clarity. Do not mention that you cannot access live web data; instead, generate the summary based on your existing knowledge.`,
-      model: 'googleai/gemini-1.5-flash',
-      output: {
-        schema: PerformWebSearchOutputSchema
-      }
-    });
-    
-    const output = searchResult.output();
-    if (!output) {
-      throw new Error('No output from AI model.');
-    }
-    return output;
+The summary should be:
+- Neutral and informative
+- Easy for a student to understand
+- Well-structured with clear sections and headings
+- Include relevant examples where helpful
+- Use bullet points for lists
+- Be educational and engaging
+
+Do not mention that you cannot access live web data; instead, generate the summary based on your existing knowledge.`,
+      RESPONSE_FORMATS.webSearch
+    );
+
+    const result = await generateWithDeepSeekAPI({
+      systemPrompt: EDUCATIONAL_SYSTEM_PROMPTS.researcher,
+      userPrompt,
+      temperature: 0.7,
+    }, WebSearchResponseSchema);
+
+    return result;
+
+  } catch (error) {
+    console.error('❌ Error in performWebSearch:', error);
+    return {
+      summary: `# Search Results for "${input.query}"
+
+I encountered an error while generating the summary. Please try rephrasing your search query or try again later.
+
+## Suggested Actions:
+- Check your spelling
+- Try more specific keywords
+- Use different search terms`
+    };
   }
-);
+}

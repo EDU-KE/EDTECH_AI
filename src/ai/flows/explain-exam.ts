@@ -8,6 +8,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {validateAndFormatResponse} from '@/ai/response-formatter';
+import {deepseekChat} from 'genkitx-deepseek';
 import {z} from 'genkit';
 
 const ExplainExamInputSchema = z.object({
@@ -28,7 +30,11 @@ export async function explainExam(input: ExplainExamInput): Promise<ExplainExamO
 const prompt = ai.definePrompt({
   name: 'explainExamPrompt',
   input: {schema: ExplainExamInputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   output: {schema: ExplainExamOutputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   prompt: `You are an AI academic advisor. A student has an upcoming exam and needs help understanding it. Based on the exam's title and subject, provide a helpful explanation.
 
   Your explanation should cover:
@@ -54,6 +60,15 @@ const explainExamFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    const result = output || {};
+    const formattedResult = {};
+    for (const [key, value] of Object.entries(result)) {
+      if (typeof value === 'string') {
+        formattedResult[key] = validateAndFormatResponse(value, 'general');
+      } else {
+        formattedResult[key] = value;
+      }
+    }
+    return formattedResult as any;;
   }
 );

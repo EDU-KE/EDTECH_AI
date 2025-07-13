@@ -1,9 +1,11 @@
 import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
+import {deepseek} from 'genkitx-deepseek';
 
 export const ai = genkit({
   plugins: [
-    googleAI(),
+    deepseek({
+      apiKey: process.env.DEEPSEEK_API_KEY,
+    }),
   ],
   logLevel: 'debug',
   enableTracingAndMetrics: true,

@@ -9,6 +9,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {validateAndFormatResponse} from '@/ai/response-formatter';
+import {deepseekChat} from 'genkitx-deepseek';
 import {z} from 'genkit';
 
 const GenerateClassNotesInputSchema = z.object({
@@ -30,7 +32,11 @@ export async function generateClassNotes(input: GenerateClassNotesInput): Promis
 const prompt = ai.definePrompt({
   name: 'generateClassNotesPrompt',
   input: {schema: GenerateClassNotesInputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   output: {schema: GenerateClassNotesOutputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   prompt: `You are an expert teacher and academic writer. Your task is to generate comprehensive and easy-to-understand class notes for a specific topic.
 
   Subject: {{{subject}}}
@@ -58,6 +64,15 @@ const generateClassNotesFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    const result = output || {};
+    const formattedResult = {};
+    for (const [key, value] of Object.entries(result)) {
+      if (typeof value === 'string') {
+        formattedResult[key] = validateAndFormatResponse(value, 'general');
+      } else {
+        formattedResult[key] = value;
+      }
+    }
+    return formattedResult as any;;
   }
 );

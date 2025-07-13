@@ -8,6 +8,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {validateAndFormatResponse} from '@/ai/response-formatter';
+import {deepseekChat} from 'genkitx-deepseek';
 import {z} from 'genkit';
 
 const GenerateStudyTipsInputSchema = z.object({
@@ -27,7 +29,11 @@ export async function generateStudyTips(input: GenerateStudyTipsInput): Promise<
 const prompt = ai.definePrompt({
   name: 'generateStudyTipsPrompt',
   input: {schema: GenerateStudyTipsInputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   output: {schema: GenerateStudyTipsOutputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   prompt: `You are an expert academic advisor. A student is looking for advice on how to succeed in their {{{subject}}} class.
 
   Please provide a list of 5-7 concise, actionable study tips to help them excel in this subject. The tips should be practical and easy to follow.
@@ -44,6 +50,15 @@ const generateStudyTipsFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    const result = output || {};
+    const formattedResult = {};
+    for (const [key, value] of Object.entries(result)) {
+      if (typeof value === 'string') {
+        formattedResult[key] = validateAndFormatResponse(value, 'general');
+      } else {
+        formattedResult[key] = value;
+      }
+    }
+    return formattedResult as any;;
   }
 );

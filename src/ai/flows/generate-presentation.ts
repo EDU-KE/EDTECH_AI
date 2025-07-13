@@ -9,6 +9,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {validateAndFormatResponse} from '@/ai/response-formatter';
+import {deepseekChat} from 'genkitx-deepseek';
 import {z} from 'genkit';
 
 function generateIsoId(): string {
@@ -57,7 +59,11 @@ export async function generatePresentation(input: GeneratePresentationInput): Pr
 const prompt = ai.definePrompt({
   name: 'generatePresentationPrompt',
   input: {schema: GeneratePresentationInputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   output: {schema: GeneratePresentationOutputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   prompt: `You are an expert instructional designer. Your task is to create a classroom presentation based on a given topic and content from a book.
 
   **Subject:** {{{subject}}}

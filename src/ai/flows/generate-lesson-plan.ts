@@ -7,8 +7,9 @@
  * - GenerateLessonPlanOutput - The return type for the generateLessonPlan function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { generateWithDeepSeekAPI, EDUCATIONAL_SYSTEM_PROMPTS, createEducationalPrompt, RESPONSE_FORMATS } from '@/ai/deepseek-api-handler';
+import { LessonPlanResponseSchema } from '@/ai/ai-response-schemas';
+import { z } from 'genkit';
 
 const GenerateLessonPlanInputSchema = z.object({
   subject: z.string().describe('The subject of the lesson (e.g., Biology).'),
@@ -24,34 +25,57 @@ const GenerateLessonPlanOutputSchema = z.object({
 export type GenerateLessonPlanOutput = z.infer<typeof GenerateLessonPlanOutputSchema>;
 
 export async function generateLessonPlan(input: GenerateLessonPlanInput): Promise<GenerateLessonPlanOutput> {
-  return generateLessonPlanFlow(input);
-}
+  try {
+    const userPrompt = createEducationalPrompt(
+      `Create a detailed lesson plan based on the following information:
 
-const prompt = ai.definePrompt({
-  name: 'generateLessonPlanPrompt',
-  input: {schema: GenerateLessonPlanInputSchema},
-  output: {schema: GenerateLessonPlanOutputSchema},
-  prompt: `You are an expert curriculum developer. Create a detailed lesson plan based on the following information.
+Subject: ${input.subject}
+Topic: ${input.topic}
+Lesson Duration: ${input.duration}
+Learning Objectives: ${input.objectives}
 
-  The lesson plan should be well-structured, engaging, and suitable for the specified duration. Include introduction, activities, necessary materials, and a method for assessment. Format the output as clean Markdown.
+The lesson plan should be well-structured, engaging, and suitable for the specified duration. Include:
+- Clear introduction
+- Main activities with timing
+- Necessary materials
+- Assessment methods
+- Conclusion/wrap-up
 
-  Subject: {{{subject}}}
-  Topic: {{{topic}}}
-  Lesson Duration: {{{duration}}}
-  Learning Objectives:
-  {{{objectives}}}
+Format the content with proper Markdown structure for easy reading.`,
+      RESPONSE_FORMATS.lessonPlan
+    );
 
-  Generate the lesson plan now.`,
-});
+    const result = await generateWithDeepSeekAPI({
+      systemPrompt: EDUCATIONAL_SYSTEM_PROMPTS.lessonPlanner,
+      userPrompt,
+      temperature: 0.7,
+    }, LessonPlanResponseSchema);
 
-const generateLessonPlanFlow = ai.defineFlow(
-  {
-    name: 'generateLessonPlanFlow',
-    inputSchema: GenerateLessonPlanInputSchema,
-    outputSchema: GenerateLessonPlanOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+    return result;
+
+  } catch (error) {
+    console.error('❌ Error in generateLessonPlan:', error);
+    return {
+      lessonPlan: `# Lesson Plan: ${input.topic}
+
+## Subject: ${input.subject}
+## Duration: ${input.duration}
+
+### Learning Objectives
+${input.objectives}
+
+### Materials
+- Whiteboard/flipchart
+- Handouts (to be prepared)
+- Writing materials
+
+### Lesson Structure
+1. **Introduction** (5 minutes) - Overview of the topic
+2. **Main Activity** (Most of lesson time) - Interactive learning
+3. **Assessment** (5-10 minutes) - Check understanding
+4. **Conclusion** (5 minutes) - Summary and next steps
+
+*Note: Detailed lesson plan generation encountered an error. Please try again for a more comprehensive plan.*`
+    };
   }
-);
+}

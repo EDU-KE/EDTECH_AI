@@ -8,6 +8,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {validateAndFormatResponse} from '@/ai/response-formatter';
+import {deepseekChat} from 'genkitx-deepseek';
 import {z} from 'genkit';
 
 const GenerateDiaryAdviceInputSchema = z.object({
@@ -27,7 +29,11 @@ export async function generateDiaryAdvice(input: GenerateDiaryAdviceInput): Prom
 const prompt = ai.definePrompt({
   name: 'generateDiaryAdvicePrompt',
   input: {schema: GenerateDiaryAdviceInputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   output: {schema: GenerateDiaryAdviceOutputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   prompt: `You are an encouraging and effective AI academic coach. Your goal is to help a student refine their plans to be more specific, actionable, and manageable.
 
   Analyze the student's plan below. Provide one or two brief, constructive suggestions.
@@ -58,6 +64,15 @@ const generateDiaryAdviceFlow = ai.defineFlow(
         return { advice: "Keep typing your plan, and I'll offer suggestions!" };
     }
     const {output} = await prompt(input);
-    return output!;
+    const result = output || {};
+    const formattedResult = {};
+    for (const [key, value] of Object.entries(result)) {
+      if (typeof value === 'string') {
+        formattedResult[key] = validateAndFormatResponse(value, 'general');
+      } else {
+        formattedResult[key] = value;
+      }
+    }
+    return formattedResult as any;;
   }
 );

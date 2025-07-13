@@ -9,6 +9,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {validateAndFormatResponse} from '@/ai/response-formatter';
+import {deepseekChat} from 'genkitx-deepseek';
 import {z} from 'genkit';
 
 const MessageSchema = z.object({
@@ -34,7 +36,11 @@ export async function suggestChatResponse(input: SuggestChatResponseInput): Prom
 const prompt = ai.definePrompt({
   name: 'suggestChatResponsePrompt',
   input: {schema: SuggestChatResponseInputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   output: {schema: SuggestChatResponseOutputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   prompt: `You are an AI assistant designed to help learners communicate effectively and supportively.
   
   Your task is to analyze the following conversation and suggest a helpful, encouraging, and context-aware response for the '{{{myRole}}}'.
@@ -64,6 +70,15 @@ const suggestChatResponseFlow = ai.defineFlow(
         };
     }
     const {output} = await prompt(input);
-    return output!;
+    const result = output || {};
+    const formattedResult = {};
+    for (const [key, value] of Object.entries(result)) {
+      if (typeof value === 'string') {
+        formattedResult[key] = validateAndFormatResponse(value, 'general');
+      } else {
+        formattedResult[key] = value;
+      }
+    }
+    return formattedResult as any;;
   }
 );

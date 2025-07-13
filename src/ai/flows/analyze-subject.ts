@@ -7,8 +7,9 @@
  * - AnalyzeSubjectOutput - The return type for the function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { generateWithDeepSeekAPI, EDUCATIONAL_SYSTEM_PROMPTS, createEducationalPrompt, RESPONSE_FORMATS } from '@/ai/deepseek-api-handler';
+import { SubjectAnalysisResponseSchema } from '@/ai/ai-response-schemas';
+import { z } from 'genkit';
 
 const AnalyzeSubjectInputSchema = z.object({
   subjectTitle: z.string().describe('The title of the subject to analyze.'),
@@ -21,34 +22,37 @@ const AnalyzeSubjectOutputSchema = z.object({
 export type AnalyzeSubjectOutput = z.infer<typeof AnalyzeSubjectOutputSchema>;
 
 export async function analyzeSubject(input: AnalyzeSubjectInput): Promise<AnalyzeSubjectOutput> {
-  return analyzeSubjectFlow(input);
-}
+  try {
+    const userPrompt = createEducationalPrompt(
+      `Analyze the following academic subject and provide an informative overview.
 
-const prompt = ai.definePrompt({
-  name: 'analyzeSubjectPrompt',
-  input: {schema: AnalyzeSubjectInputSchema},
-  output: {schema: AnalyzeSubjectOutputSchema},
-  prompt: `You are an expert academic advisor. A student wants to understand more about a subject before diving in.
+Subject: ${input.subjectTitle}
 
-  Provide a concise and encouraging analysis of the subject: **{{{subjectTitle}}}**.
+Provide an analysis that covers:
+- What the subject is about and its core topics
+- Key skills students develop through studying this subject
+- Why this subject is important or valuable
+- Any interesting or engaging aspects that might motivate students
 
-  Your analysis should cover:
-  1.  **Core Topics:** Briefly mention 2-3 key areas or topics the student will likely study.
-  2.  **Why It's Important:** Explain the real-world relevance of the subject or the skills it develops (e.g., critical thinking, problem-solving).
-  3.  **Overall takeaway:** End with a positive and motivating sentence about the subject.
+Make your analysis engaging and informative for students. Write it as a well-structured educational overview.`,
+      `{
+  "analysis": "Your comprehensive analysis here as a single well-formatted text with clear sections and bullet points"
+}`
+    );
 
-  Keep the entire analysis to about 3-4 short paragraphs. Format the output as Markdown.
-  `,
-});
+    const result = await generateWithDeepSeekAPI({
+      systemPrompt: EDUCATIONAL_SYSTEM_PROMPTS.analyst,
+      userPrompt,
+      temperature: 0.7,
+    }, SubjectAnalysisResponseSchema);
 
-const analyzeSubjectFlow = ai.defineFlow(
-  {
-    name: 'analyzeSubjectFlow',
-    inputSchema: AnalyzeSubjectInputSchema,
-    outputSchema: AnalyzeSubjectOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+    return result;
+
+  } catch (error) {
+    console.error('❌ Error in analyzeSubject:', error);
+    // Fallback response
+    return {
+      analysis: `**${input.subjectTitle}** is an important academic subject that offers valuable learning opportunities. This subject helps students develop critical thinking skills and provides knowledge that can be applied in various real-world contexts.`
+    };
   }
-);
+}

@@ -9,9 +9,10 @@
  * - ProvideAiTutoringOutput - The return type for the provideAiTutoring function.
  */
 
-import {ai} from '@/ai/genkit';
-import {getExamsBySubject} from '@/lib/mock-data';
-import {z} from 'genkit';
+import { generateWithDeepSeekAPI, EDUCATIONAL_SYSTEM_PROMPTS, createEducationalPrompt, RESPONSE_FORMATS } from '@/ai/deepseek-api-handler';
+import { TutoringResponseSchema } from '@/ai/ai-response-schemas';
+import { getExamsBySubject } from '@/lib/mock-data';
+import { z } from 'genkit';
 
 const ExamSchema = z.object({
     title: z.string(),
@@ -32,41 +33,33 @@ const ProvideAiTutoringOutputSchema = z.object({
 export type ProvideAiTutoringOutput = z.infer<typeof ProvideAiTutoringOutputSchema>;
 
 export async function provideAiTutoring(input: ProvideAiTutoringInput): Promise<ProvideAiTutoringOutput> {
-  // In a real app, this data might be fetched dynamically.
-  // By passing it into the flow, we avoid making the AI use a tool for static context.
+  // Get exam context for the subject
   const exams = getExamsBySubject(input.subject);
-  return provideAiTutoringFlow({ ...input, upcomingExams: exams });
-}
+  
+  try {
+    const examsContext = exams && exams.length > 0 
+      ? `\n\nFor context, here are upcoming exams:\n${exams.map(exam => `- ${exam.title} (Topic: ${exam.topic}, Duration: ${exam.duration})`).join('\n')}\n`
+      : '';
 
-const prompt = ai.definePrompt({
-  name: 'provideAiTutoringPrompt',
-  input: {schema: ProvideAiTutoringInputSchema},
-  output: {schema: ProvideAiTutoringOutputSchema},
-  system: `You are an AI tutor specializing in {{{subject}}}.
-If the user's question relates to upcoming tests or exams, use the context provided about upcoming exams to inform your answer.
-Do not tell the user you were provided with a list of exams; just use the information naturally in your response if relevant.`,
-  prompt: `A student has asked the following question:
-"{{question}}"
+    const userPrompt = createEducationalPrompt(
+      `A student studying ${input.subject} has asked: "${input.question}"${examsContext}
 
-{{#if upcomingExams.length}}
-For your context, here is a list of upcoming exams for this subject. You may use this to answer questions about tests.
-Upcoming Exams:
-{{#each upcomingExams}}
-- {{title}} (Topic: {{topic}}, Duration: {{duration}})
-{{/each}}
-{{/if}}
+Provide a helpful and clear explanation to the student. Be supportive, educational, and adapt your response to their level.`,
+      RESPONSE_FORMATS.tutoring
+    );
 
-Provide a helpful and clear explanation to the student.`,
-});
+    const result = await generateWithDeepSeekAPI({
+      systemPrompt: EDUCATIONAL_SYSTEM_PROMPTS.tutor,
+      userPrompt,
+      temperature: 0.7,
+    }, TutoringResponseSchema);
 
-const provideAiTutoringFlow = ai.defineFlow(
-  {
-    name: 'provideAiTutoringFlow',
-    inputSchema: ProvideAiTutoringInputSchema,
-    outputSchema: ProvideAiTutoringOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+    return result;
+
+  } catch (error) {
+    console.error('❌ Error in provideAiTutoring:', error);
+    return {
+      answer: "I'm sorry, I encountered an error while processing your question. Please try again."
+    };
   }
-);
+}

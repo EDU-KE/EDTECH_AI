@@ -9,6 +9,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {validateAndFormatResponse} from '@/ai/response-formatter';
+import {deepseekChat} from 'genkitx-deepseek';
 import {z} from 'genkit';
 
 const MessageSchema = z.object({
@@ -34,7 +36,11 @@ export async function analyzeChatTone(input: AnalyzeChatToneInput): Promise<Anal
 const prompt = ai.definePrompt({
   name: 'analyzeChatTonePrompt',
   input: {schema: AnalyzeChatToneInputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   output: {schema: AnalyzeChatToneOutputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   prompt: `You are an expert AI in emotional analysis and student psychology. Your task is to analyze a conversation between two learners and determine its overall tone.
 
   {{#if (lt messages.length 2)}}
@@ -62,6 +68,15 @@ const analyzeChatToneFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    const result = output || {};
+    const formattedResult = {};
+    for (const [key, value] of Object.entries(result)) {
+      if (typeof value === 'string') {
+        formattedResult[key] = validateAndFormatResponse(value, 'general');
+      } else {
+        formattedResult[key] = value;
+      }
+    }
+    return formattedResult as any;;
   }
 );

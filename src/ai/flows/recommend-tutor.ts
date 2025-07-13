@@ -9,6 +9,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {validateAndFormatResponse} from '@/ai/response-formatter';
+import {deepseekChat} from 'genkitx-deepseek';
 import {onlineTutors} from '@/lib/mock-data';
 import {z} from 'genkit';
 

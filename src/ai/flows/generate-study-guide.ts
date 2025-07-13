@@ -8,6 +8,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {validateAndFormatResponse} from '@/ai/response-formatter';
+import {deepseekChat} from 'genkitx-deepseek';
 import {z} from 'genkit';
 
 const GenerateStudyGuideInputSchema = z.object({
@@ -37,7 +39,11 @@ export async function generateStudyGuide(input: GenerateStudyGuideInput): Promis
 const prompt = ai.definePrompt({
   name: 'generateStudyGuidePrompt',
   input: {schema: GenerateStudyGuideInputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   output: {schema: GenerateStudyGuideOutputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   prompt: `You are an AI learning assistant. Your task is to create a study guide for a student based on a book's title and a preview of its content.
 
   The study guide should contain three parts:
@@ -64,6 +70,15 @@ const generateStudyGuideFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    const result = output || {};
+    const formattedResult = {};
+    for (const [key, value] of Object.entries(result)) {
+      if (typeof value === 'string') {
+        formattedResult[key] = validateAndFormatResponse(value, 'general');
+      } else {
+        formattedResult[key] = value;
+      }
+    }
+    return formattedResult as any;;
   }
 );

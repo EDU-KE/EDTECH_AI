@@ -8,6 +8,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {validateAndFormatResponse} from '@/ai/response-formatter';
+import {deepseekChat} from 'genkitx-deepseek';
 import {z} from 'genkit';
 
 const GeneratePersonalizedLearningPathInputSchema = z.object({
@@ -29,7 +31,11 @@ export async function generatePersonalizedLearningPath(input: GeneratePersonaliz
 const prompt = ai.definePrompt({
   name: 'generatePersonalizedLearningPathPrompt',
   input: {schema: GeneratePersonalizedLearningPathInputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   output: {schema: GeneratePersonalizedLearningPathOutputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   prompt: `You are an expert in creating personalized learning paths for students.
 
   Based on the student's current knowledge level, learning goals, and the subject they want to study, create a personalized learning path for them.
@@ -49,6 +55,15 @@ const generatePersonalizedLearningPathFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    const result = output || {};
+    const formattedResult = {};
+    for (const [key, value] of Object.entries(result)) {
+      if (typeof value === 'string') {
+        formattedResult[key] = validateAndFormatResponse(value, 'general');
+      } else {
+        formattedResult[key] = value;
+      }
+    }
+    return formattedResult as any;;
   }
 );

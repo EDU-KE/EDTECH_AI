@@ -8,6 +8,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {validateAndFormatResponse} from '@/ai/response-formatter';
+import {deepseekChat} from 'genkitx-deepseek';
 import {z} from 'genkit';
 
 const StudentPerformanceSchema = z.object({
@@ -38,7 +40,11 @@ export async function recommendCareerPath(input: RecommendCareerPathInput): Prom
 const prompt = ai.definePrompt({
   name: 'recommendCareerPathPrompt',
   input: {schema: StudentPerformanceSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   output: {schema: RecommendCareerPathOutputSchema},
+  model: deepseekChat,
+  model: deepseekChat,
   prompt: `You are an expert AI career counselor for students. Your task is to analyze a student's academic performance and interests to provide insightful and actionable career guidance.
 
   **Student Profile:**
@@ -75,6 +81,15 @@ const recommendCareerPathFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    const result = output || {};
+    const formattedResult = {};
+    for (const [key, value] of Object.entries(result)) {
+      if (typeof value === 'string') {
+        formattedResult[key] = validateAndFormatResponse(value, 'general');
+      } else {
+        formattedResult[key] = value;
+      }
+    }
+    return formattedResult as any;;
   }
 );
