@@ -83,6 +83,29 @@ const educationalContent = z.any()
       .replace(/\n{3,}/g, '\n\n');   // Limit consecutive newlines
   });
 
+// Scheme of Work specific content transform
+const schemeOfWorkContent = z.string()
+  .transform((str) => str
+    .trim()
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    // Ensure proper markdown table formatting
+    .replace(/\|\s*([^|]+)\s*\|/g, '| $1 |')
+    .replace(/\|\s+\|/g, '| |')
+    // Clean up table headers
+    .replace(/\|\s*(Week|Topic|Learning Objectives?|Activities?|Objectives?|Activity)\s*\|/gi, '| **$1** |')
+    // Clean up table separator
+    .replace(/\|\s*-+\s*\|/g, '|------|')
+    // Clean up week numbers
+    .replace(/\|\s*(\d+)\s*\|/g, '| **Week $1** |')
+    // Remove excessive newlines but preserve table structure
+    .replace(/\n{3,}/g, '\n\n')
+    // Remove trailing spaces
+    .replace(/[ \t]+$/gm, '')
+    // Ensure proper spacing after periods in cells
+    .replace(/\.([A-Z])/g, '. $1')
+  );
+
 /**
  * Schema for AI Tutoring responses
  */
@@ -164,7 +187,8 @@ export const LearningPathResponseSchema = z.object({
  * Schema for Scheme of Work responses
  */
 export const SchemeOfWorkResponseSchema = z.object({
-  scheme: educationalContent.describe('Detailed scheme of work for educational planning'),
+  scheme: schemeOfWorkContent.describe('Detailed scheme of work as a markdown table with weekly breakdown'),
+  schemeOfWork: schemeOfWorkContent.optional().describe('Alternative field for scheme of work content'),
 });
 
 /**

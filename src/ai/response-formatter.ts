@@ -59,6 +59,14 @@ export function formatJSONResponse(response: any): string {
   }
   
   if (response && typeof response === 'object') {
+    // Special handling for scheme of work responses
+    if (response.schemeOfWork) {
+      return formatSchemeOfWork(response.schemeOfWork);
+    }
+    if (response.scheme) {
+      return formatSchemeOfWork(response.scheme);
+    }
+    
     // If it's a structured response, format the main content
     if (response.answer) {
       return formatAIResponse(response.answer);
@@ -91,6 +99,11 @@ export function formatJSONResponse(response: any): string {
  */
 export function formatEducationalContent(text: string): string {
   if (!text) return '';
+  
+  // Check if this looks like a scheme of work (contains table structure)
+  if (text.includes('|') && text.includes('Week') && text.includes('Topic')) {
+    return formatSchemeOfWork(text);
+  }
   
   return formatMarkdownForCards(text)
     // Ensure learning objectives are well formatted
@@ -127,7 +140,7 @@ export function truncateForPreview(text: string, maxLength: number = 150): strin
 /**
  * Validates and cleans AI response before formatting
  */
-export function validateAndFormatResponse(response: any, type: 'educational' | 'general' | 'markdown' = 'general'): string {
+export function validateAndFormatResponse(response: any, type: 'educational' | 'general' | 'markdown' | 'scheme-of-work' = 'general'): string {
   if (!response) {
     return 'No response generated. Please try again.';
   }
@@ -136,6 +149,8 @@ export function validateAndFormatResponse(response: any, type: 'educational' | '
     const cleaned = formatJSONResponse(response);
     
     switch (type) {
+      case 'scheme-of-work':
+        return formatSchemeOfWork(cleaned);
       case 'educational':
         return formatEducationalContent(cleaned);
       case 'markdown':
@@ -147,4 +162,34 @@ export function validateAndFormatResponse(response: any, type: 'educational' | '
     console.error('Error formatting AI response:', error);
     return formatAIResponse(String(response));
   }
+}
+
+/**
+ * Formats scheme of work markdown tables specifically
+ */
+export function formatSchemeOfWork(text: string): string {
+  if (!text) return '';
+  
+  return text
+    .trim()
+    // Normalize line breaks
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    // Ensure proper markdown table formatting
+    .replace(/\|\s*([^|]+)\s*\|/g, '| $1 |') // Add spaces around table cell content
+    .replace(/\|\s+\|/g, '| |') // Fix empty cells
+    // Ensure table headers are properly formatted
+    .replace(/\|\s*(Week|Topic|Learning Objectives?|Activities?|Objectives?|Activity)\s*\|/gi, '| **$1** |')
+    // Ensure proper table separator formatting
+    .replace(/\|\s*-+\s*\|/g, '|------|')
+    // Clean up week numbers
+    .replace(/\|\s*(\d+)\s*\|/g, '| **Week $1** |')
+    // Remove excessive whitespace while preserving table structure
+    .replace(/\n{3,}/g, '\n\n')
+    // Ensure consistent spacing after periods in table cells
+    .replace(/\.([A-Z])/g, '. $1')
+    // Format bullet points within table cells
+    .replace(/\|\s*([^|]*)([-*•])\s*/g, '| $1• ')
+    // Clean up trailing spaces
+    .replace(/[ \t]+$/gm, '');
 }
