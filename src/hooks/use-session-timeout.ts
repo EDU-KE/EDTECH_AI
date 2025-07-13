@@ -17,8 +17,12 @@ export const useSessionTimeout = ({ onLogout }: UseSessionTimeoutProps) => {
   const idleTimerRef = useRef<NodeJS.Timeout>();
   const countdownTimerRef = useRef<NodeJS.Timeout>();
 
-  const handleLogout = useCallback(() => {
-    onLogout();
+  const handleLogout = useCallback(async () => {
+    try {
+      await onLogout();
+    } catch (error) {
+      console.error('Session timeout logout error:', error);
+    }
   }, [onLogout]);
 
   const resetTimers = useCallback(() => {
@@ -70,7 +74,8 @@ export const useSessionTimeout = ({ onLogout }: UseSessionTimeoutProps) => {
         setCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(countdownTimerRef.current);
-            handleLogout();
+            // Use setTimeout to avoid calling handleLogout during render
+            setTimeout(() => handleLogout(), 0);
             return 0;
           }
           return prev - 1;
