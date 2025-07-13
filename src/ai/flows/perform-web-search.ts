@@ -9,9 +9,17 @@
  */
 
 import { generateWithDeepSeekAPI, EDUCATIONAL_SYSTEM_PROMPTS, createEducationalPrompt, RESPONSE_FORMATS } from '@/ai/deepseek-api-handler';
-import { WebSearchResponseSchema } from '@/ai/ai-response-schemas';
+import { webSearchContentTransformer } from '@/ai/ai-response-schemas';
 import { validateAndFormatResponse } from '@/ai/response-formatter';
+import { parseJsonFromLLM } from '@/ai/parseJsonFromLLM';
 import { z } from 'genkit';
+
+// Local schema for web search response
+const WebSearchResponseSchema = z.object({
+  searchResults: z.string().optional().describe('Web search results with educational summaries'),
+  summary: z.string().optional().describe('Summary of search results'),
+  results: z.array(z.any()).optional().describe('Array of search result objects'),
+});
 
 const PerformWebSearchInputSchema = z.object({
   query: z.string().describe("The user's search query."),
@@ -48,11 +56,22 @@ Do not mention that you cannot access live web data; instead, generate the summa
 
     // Extract and format the search results
     let summary = '';
-    if (result.searchResults) {
-      summary = validateAndFormatResponse(result.searchResults, 'educational');
+    const typedResult = result as any;
+    
+    if (typedResult.searchResults) {
+      summary = validateAndFormatResponse(typedResult.searchResults, 'web-search');
+    } else if (typedResult.summary) {
+      summary = validateAndFormatResponse(typedResult.summary, 'web-search');
     } else {
-      // Fallback if the result structure is unexpected
-      summary = generateFallbackWebSearchSummary(input.query);
+      // Try to transform the entire result using the web search transformer
+      const transformedContent = webSearchContentTransformer.parse(result);
+      summary = validateAndFormatResponse(transformedContent, 'web-search');
+    }
+
+    // Ensure we have meaningful content
+    if (!summary || summary.trim().length === 0) {
+      console.warn('Empty web search summary generated, using fallback');
+      return { summary: generateFallbackWebSearchSummary(input.query) };
     }
 
     return { summary };
@@ -63,17 +82,19 @@ Do not mention that you cannot access live web data; instead, generate the summa
     // Try to extract content from error if available
     if (error.detail && error.originalMessage) {
       try {
-        const errorMessage = error.originalMessage;
-        if (errorMessage.includes('searchResults') || errorMessage.includes('summary')) {
-          // Extract JSON from the error message
-          const jsonMatch = errorMessage.match(/```json\n({[\s\S]*?})\n```/);
-          if (jsonMatch) {
-            const parsedData = JSON.parse(jsonMatch[1]);
-            if (parsedData.searchResults) {
-              return {
-                summary: validateAndFormatResponse(parsedData.searchResults, 'educational')
-              };
-            }
+        const extractedData = parseJsonFromLLM(error.originalMessage);
+        if (extractedData && typeof extractedData === 'object') {
+          const data = extractedData as any;
+          const searchContent = data.searchResults || 
+                               data.summary || 
+                               data.results ||
+                               JSON.stringify(extractedData);
+          
+          if (searchContent) {
+            const transformedContent = webSearchContentTransformer.parse(searchContent);
+            return {
+              summary: validateAndFormatResponse(transformedContent, 'web-search')
+            };
           }
         }
       } catch (parseError) {
@@ -82,6 +103,7 @@ Do not mention that you cannot access live web data; instead, generate the summa
     }
     
     // Final fallback
+    console.warn('Using fallback web search summary due to AI generation failure');
     return {
       summary: generateFallbackWebSearchSummary(input.query)
     };
@@ -117,5 +139,5 @@ If you're researching for educational purposes, consider:
 
 *Note: For the most current and detailed information, please consult recent academic sources and official publications related to your specific research needs.*`;
 
-  return validateAndFormatResponse(fallbackSummary, 'educational');
+  return validateAndFormatResponse(fallbackSummary, 'web-search');
 }

@@ -11,6 +11,8 @@
 
 import { generateWithDeepSeekAPI, EDUCATIONAL_SYSTEM_PROMPTS, createEducationalPrompt, RESPONSE_FORMATS } from '@/ai/deepseek-api-handler';
 import { TutoringResponseSchema } from '@/ai/ai-response-schemas';
+import { parseJsonFromLLM } from '@/ai/parseJsonFromLLM';
+import { validateAndFormatResponse } from '@/ai/response-formatter';
 import { getExamsBySubject } from '@/lib/mock-data';
 import { z } from 'genkit';
 
@@ -54,7 +56,53 @@ Provide a helpful and clear explanation to the student. Be supportive, education
       temperature: 0.7,
     }, TutoringResponseSchema);
 
-    return result;
+    // Extract the answer content
+    let answerContent = '';
+    const typedResult = result as any;
+    
+    try {
+      if (typedResult && typeof typedResult === 'object') {
+        if (typedResult.answer) {
+          answerContent = String(typedResult.answer);
+        } else if (typedResult.response) {
+          answerContent = String(typedResult.response);
+        } else {
+          answerContent = String(typedResult);
+        }
+      } else if (typeof result === 'string') {
+        try {
+          const jsonResponse = parseJsonFromLLM(result) as any;
+          if (jsonResponse && (jsonResponse.answer || jsonResponse.response)) {
+            answerContent = String(jsonResponse.answer || jsonResponse.response);
+          } else {
+            answerContent = result;
+          }
+        } catch {
+          answerContent = result;
+        }
+      }
+    } catch (parseError) {
+      console.warn('⚠️  Failed to parse tutoring response, using raw result:', parseError);
+      answerContent = String(result);
+    }
+
+    // Apply formatting if we have content
+    if (answerContent) {
+      const formattedContent = await validateAndFormatResponse(
+        { answer: answerContent },
+        'educational'
+      );
+      
+      if (typeof formattedContent === 'string') {
+        return { answer: formattedContent };
+      } else if (formattedContent && typeof formattedContent === 'object' && 'answer' in formattedContent) {
+        return formattedContent as ProvideAiTutoringOutput;
+      }
+    }
+
+    return { 
+      answer: answerContent || "I understand your question about " + input.subject + ". Let me help you with that." 
+    };
 
   } catch (error) {
     console.error('❌ Error in provideAiTutoring:', error);
