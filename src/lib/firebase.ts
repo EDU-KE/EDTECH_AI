@@ -8,15 +8,20 @@ import {
 } from 'firebase/firestore';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 
+// Check if we're in demo mode (no Firebase config provided)
+const isDemoMode = !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 
+                   process.env.NEXT_PUBLIC_FIREBASE_API_KEY === "your_api_key_here";
+
+// Firebase configuration object
 const firebaseConfig = {
   // Your Firebase config object goes here
   // This should be loaded from environment variables in production
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "demo-api-key",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "demo-project.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "demo-project",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "demo-project.appspot.com",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:abcdef",
 };
 
 // Initialize Firebase
@@ -32,7 +37,7 @@ const db = initializeFirestore(app, {
 const auth = getAuth(app);
 
 // Connect to emulators in development
-if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && !isDemoMode) {
   try {
     // Connect Firestore emulator
     connectFirestoreEmulator(db, 'localhost', 8080);
@@ -45,7 +50,7 @@ if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
 }
 
 // Enable offline persistence for better performance
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && !isDemoMode) {
   enableIndexedDbPersistence(db).catch((err) => {
     if (err.code === 'failed-precondition') {
       console.log('Multiple tabs open, persistence can only be enabled in one tab at a time.');
@@ -55,5 +60,14 @@ if (typeof window !== 'undefined') {
   });
 }
 
-export { db, auth };
+// Log Firebase configuration status
+if (typeof window !== 'undefined') {
+  console.log('🔥 Firebase Configuration:', {
+    isDemoMode,
+    projectId: firebaseConfig.projectId,
+    authDomain: firebaseConfig.authDomain
+  });
+}
+
+export { db, auth, isDemoMode };
 export default app;
