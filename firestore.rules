@@ -1,18 +1,95 @@
-rules_version='2'
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2025, 8, 8);
+    // Helper functions for role checking
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isTeacher() {
+      return request.auth.token.role == 'teacher';
+    }
+    
+    function isAdmin() {
+      return request.auth.token.role == 'admin';
+    }
+
+    // Students collection - users can only access their own data
+    match /students/{studentId} {
+      allow read, write: if isAuthenticated() && isOwner(studentId);
+      allow read: if isAuthenticated() && (isTeacher() || isAdmin());
+    }
+    
+    // Learning progress - students can only access their own progress
+    match /learningProgress/{progressId} {
+      allow read, write: if isAuthenticated() && 
+        isOwner(resource.data.userId);
+      allow read: if isAuthenticated() && (isTeacher() || isAdmin());
+      allow write: if isAuthenticated() && isTeacher();
+    }
+    
+    // Exam results - students can read their own results, teachers can manage all
+    match /examResults/{resultId} {
+      allow read: if isAuthenticated() && 
+        (isOwner(resource.data.studentId) || isTeacher() || isAdmin());
+      allow write: if isAuthenticated() && (isTeacher() || isAdmin());
+    }
+    
+    // Student activities - logging and reading with proper permissions
+    match /studentActivities/{activityId} {
+      allow read: if isAuthenticated() && 
+        (isOwner(resource.data.userId) || isTeacher() || isAdmin());
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow update, delete: if isAuthenticated() && (isTeacher() || isAdmin());
+    }
+    
+    // Tutoring sessions - participants can read and write
+    match /tutoringSessions/{sessionId} {
+      allow read, write: if isAuthenticated() && 
+        (isOwner(resource.data.studentId) || 
+         isOwner(resource.data.tutorId) || 
+         isTeacher() || isAdmin());
+      
+      // Messages within tutoring sessions
+      match /messages/{messageId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+    
+    // Leaderboard - read-only for students, writable by teachers/admins
+    match /leaderboard/{entry} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (isTeacher() || isAdmin());
+    }
+    
+    // Class notes and educational content
+    match /classNotes/{noteId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (isTeacher() || isAdmin());
+    }
+    
+    // Recommendations - users can read their own, teachers can manage
+    match /recommendations/{recId} {
+      allow read: if isAuthenticated() && 
+        (isOwner(resource.data.userId) || isTeacher() || isAdmin());
+      allow write: if isAuthenticated() && (isTeacher() || isAdmin());
+    }
+    
+    // Contest data - read-only for students
+    match /contests/{contestId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (isTeacher() || isAdmin());
+    }
+    
+    // Library books and resources
+    match /libraryBooks/{bookId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (isTeacher() || isAdmin());
     }
   }
 }
