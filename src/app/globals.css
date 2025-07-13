@@ -1,3 +1,4 @@
+/* PostCSS with Tailwind CSS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -65,5 +66,51 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Mobile-first responsive utilities */
+  .text-responsive {
+    @apply text-sm sm:text-base;
+  }
+  
+  .text-responsive-lg {
+    @apply text-base sm:text-lg;
+  }
+  
+  .text-responsive-xl {
+    @apply text-lg sm:text-xl;
+  }
+  
+  .gap-responsive {
+    @apply gap-3 sm:gap-4;
+  }
+  
+  .p-responsive {
+    @apply p-3 sm:p-4 lg:p-6;
+  }
+  
+  .px-responsive {
+    @apply px-3 sm:px-4 lg:px-6;
+  }
+  
+  .py-responsive {
+    @apply py-3 sm:py-4 lg:py-6;
+  }
+  
+  /* Touch-friendly button sizing for mobile */
+  .btn-mobile {
+    @apply min-h-[44px] px-4;
+  }
+  
+  /* Better line height for mobile reading */
+  .text-mobile-friendly {
+    @apply leading-relaxed sm:leading-normal;
+  }
+  
+  /* Scroll area for mobile */
+  .scroll-mobile {
+    @apply overflow-auto touch-pan-y;
   }
 }

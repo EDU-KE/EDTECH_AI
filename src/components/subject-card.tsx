@@ -24,25 +24,25 @@ export const SubjectCard = React.memo(function SubjectCard({ subject, onAnalyze 
   const { id, title, description, Icon, tag } = subject;
   return (
     <Card className="hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
-        <CardHeader>
-            <div className="flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-4">
-            <Icon className="h-10 w-10 text-primary" />
+        <CardHeader className="pb-4">
+            <div className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 mb-3 sm:mb-4">
+            <Icon className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
             </div>
             <div className="flex items-center gap-3">
-            <CardTitle className="font-headline">{title}</CardTitle>
+            <CardTitle className="font-headline text-base sm:text-lg leading-tight">{title}</CardTitle>
             </div>
-            <Badge variant="secondary" className="w-fit mt-1">{tag}</Badge>
+            <Badge variant="secondary" className="w-fit mt-1 text-xs">{tag}</Badge>
         </CardHeader>
         <CardContent className="flex-grow">
-            <CardDescription>{description}</CardDescription>
+            <CardDescription className="text-sm leading-relaxed">{description}</CardDescription>
         </CardContent>
-        <CardFooter className="grid grid-cols-2 gap-2">
-            <Button asChild variant="outline" size="sm">
+        <CardFooter className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
+            <Button asChild variant="outline" size="sm" className="w-full">
                 <Link href={`/subjects/${id}`}>
                     Details <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
             </Button>
-            <Button onClick={(e) => { e.stopPropagation(); onAnalyze(subject); }} variant="default" size="sm">
+            <Button onClick={(e) => { e.stopPropagation(); onAnalyze(subject); }} variant="default" size="sm" className="w-full">
                 AI Analyze <Sparkles className="ml-2 h-4 w-4" />
             </Button>
         </CardFooter>

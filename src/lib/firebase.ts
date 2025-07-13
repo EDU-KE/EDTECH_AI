@@ -9,8 +9,25 @@ import {
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 
 // Check if we're in demo mode (no Firebase config provided)
-const isDemoMode = !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 
-                   process.env.NEXT_PUBLIC_FIREBASE_API_KEY === "your_api_key_here";
+// Use a function to check this dynamically to avoid SSR/client hydration issues
+const checkDemoMode = () => {
+  if (typeof window === 'undefined') {
+    // Server-side: check process.env
+    return !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 
+           process.env.NEXT_PUBLIC_FIREBASE_API_KEY === "your_api_key_here";
+  } else {
+    // Client-side: check if Firebase is properly configured
+    try {
+      return !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 
+             process.env.NEXT_PUBLIC_FIREBASE_API_KEY === "your_api_key_here";
+    } catch {
+      return true; // Default to demo mode if there's any error
+    }
+  }
+};
+
+// For backward compatibility, create a constant
+const isDemoMode = checkDemoMode();
 
 // Firebase configuration object
 const firebaseConfig = {

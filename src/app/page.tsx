@@ -15,8 +15,12 @@ import { BookOpenCheck, GraduationCap, Brain, Users } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 
 export default function HomePage() {
-  const { user, loading } = useAuth()
+  const { user, loading, isDemoMode } = useAuth()
   const router = useRouter()
+
+  // Force demo mode detection based on environment variable
+  const isDemo = !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 
+                 process.env.NEXT_PUBLIC_FIREBASE_API_KEY === "your_api_key_here";
 
   useEffect(() => {
     // Redirect to dashboard if user is already authenticated
@@ -25,8 +29,20 @@ export default function HomePage() {
     }
   }, [user, loading, router])
 
-  // Show loading while checking authentication
-  if (loading) {
+  // In demo mode, always show the landing page after 1 second max
+  const shouldShowLoading = loading && !isDemo;
+
+  console.log('HomePage render:', { 
+    loading, 
+    isDemoMode, 
+    isDemo, 
+    shouldShowLoading, 
+    user: user?.email,
+    envKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY
+  });
+
+  // Show loading while checking authentication (but not in demo mode)
+  if (shouldShowLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">

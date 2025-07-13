@@ -1,9 +1,5 @@
 import type { NextConfig } from 'next';
 
-import type { NextConfig } from 'next';
-
-import type { NextConfig } from 'next';
-
 // Check for required DeepSeek API key at build time
 if (!process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY === 'your_deepseek_api_key_here') {
   throw new Error(`
@@ -23,6 +19,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Allow cross-origin requests from codespace environment
+  allowedDevOrigins: [
+    '127.0.0.1',
+    'localhost',
+    '*.preview.app.github.dev',
+    '*.app.github.dev',
+    '10.0.1.138',
+  ],
   images: {
     remotePatterns: [
       {

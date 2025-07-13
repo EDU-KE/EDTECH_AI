@@ -83,7 +83,7 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-sm sm:max-w-2xl max-h-[85vh] sm:max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <SettingsIcon className="h-5 w-5" />
@@ -94,27 +94,27 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* User Profile Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base">
                   <User className="h-4 w-4" />
                   Profile Information
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Your account details and basic information
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">
                       Display Name
                     </label>
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{profile.displayName}</span>
+                      <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm truncate">{profile.displayName}</span>
                     </div>
                   </div>
                   
@@ -122,9 +122,9 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
                     <label className="text-sm font-medium text-muted-foreground">
                       Email Address
                     </label>
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{profile.email}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm truncate">{profile.email}</span>
                     </div>
                   </div>
                   
@@ -249,25 +249,25 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
             </AlertDialogTitle>
             <AlertDialogDescription>
               Are you absolutely sure you want to delete your account? This action cannot be undone.
-              
-              <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-                <p className="text-sm text-destructive font-medium">This will permanently:</p>
-                <ul className="text-sm text-destructive mt-1 list-disc list-inside space-y-1">
-                  <li>Delete your account and profile</li>
-                  <li>Remove all your learning data</li>
-                  <li>Cancel any active subscriptions</li>
-                  <li>Delete your study progress</li>
-                </ul>
-              </div>
-
-              {isDemoMode && (
-                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                  <p className="text-sm text-blue-800">
-                    <strong>Demo Mode:</strong> Account deletion will only sign you out.
-                  </p>
-                </div>
-              )}
             </AlertDialogDescription>
+            
+            <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+              <div className="text-sm text-destructive font-medium">This will permanently:</div>
+              <ul className="text-sm text-destructive mt-1 list-disc list-inside space-y-1">
+                <li>Delete your account and profile</li>
+                <li>Remove all your learning data</li>
+                <li>Cancel any active subscriptions</li>
+                <li>Delete your study progress</li>
+              </ul>
+            </div>
+
+            {isDemoMode && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <div className="text-sm text-blue-800">
+                  <strong>Demo Mode:</strong> Account deletion will only sign you out.
+                </div>
+              </div>
+            )}
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>

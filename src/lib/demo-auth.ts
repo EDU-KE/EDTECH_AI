@@ -84,6 +84,15 @@ export const demoSignIn = async (email: string, password: string) => {
   
   currentDemoUser = { user, profile: demoUser.profile };
   
+  // Set cookies for middleware authentication in demo mode
+  if (typeof document !== 'undefined') {
+    const sessionExpiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
+    document.cookie = `auth-token=demo-token-${user.uid}; path=/; max-age=86400`;
+    document.cookie = `user-role=${demoUser.profile.role}; path=/; max-age=86400`;
+    document.cookie = `session-expiry=${sessionExpiry}; path=/; max-age=86400`;
+    document.cookie = `auth-session=demo-session; path=/; max-age=86400`;
+  }
+  
   // Notify auth state listeners
   authStateCallbacks.forEach(callback => callback(user));
   
@@ -95,6 +104,14 @@ export const demoSignOut = async () => {
   await new Promise(resolve => setTimeout(resolve, 500));
   
   currentDemoUser = null;
+  
+  // Clear cookies for middleware authentication in demo mode
+  if (typeof document !== 'undefined') {
+    document.cookie = 'auth-token=; path=/; max-age=0';
+    document.cookie = 'user-role=; path=/; max-age=0';
+    document.cookie = 'session-expiry=; path=/; max-age=0';
+    document.cookie = 'auth-session=; path=/; max-age=0';
+  }
   
   // Notify auth state listeners
   authStateCallbacks.forEach(callback => callback(null));
