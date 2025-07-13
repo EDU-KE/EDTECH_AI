@@ -67,6 +67,18 @@ export function formatJSONResponse(response: any): string {
       return formatSchemeOfWork(response.scheme);
     }
     
+    // Special handling for career path responses
+    if (response.recommendedPaths || response.subjectRecommendations) {
+      if (response.subjectRecommendations) {
+        return formatCareerGuidance(response.subjectRecommendations);
+      }
+    }
+    
+    // Special handling for web search responses
+    if (response.searchResults) {
+      return formatWebSearchResults(response.searchResults);
+    }
+    
     // If it's a structured response, format the main content
     if (response.answer) {
       return formatAIResponse(response.answer);
@@ -105,6 +117,16 @@ export function formatEducationalContent(text: string): string {
     return formatSchemeOfWork(text);
   }
   
+  // Check if this looks like career guidance content
+  if (text.includes('Career') || text.includes('Subject Recommendations') || text.includes('Field:')) {
+    return formatCareerGuidance(text);
+  }
+  
+  // Check if this looks like web search results
+  if (text.includes('Search Results') || text.includes('Research') || text.includes('Sources') || text.includes('Overview')) {
+    return formatWebSearchResults(text);
+  }
+  
   return formatMarkdownForCards(text)
     // Ensure learning objectives are well formatted
     .replace(/^(Learning Objectives?:?)\s*/gim, '## $1\n')
@@ -140,7 +162,7 @@ export function truncateForPreview(text: string, maxLength: number = 150): strin
 /**
  * Validates and cleans AI response before formatting
  */
-export function validateAndFormatResponse(response: any, type: 'educational' | 'general' | 'markdown' | 'scheme-of-work' = 'general'): string {
+export function validateAndFormatResponse(response: any, type: 'educational' | 'general' | 'markdown' | 'scheme-of-work' | 'career-guidance' | 'web-search' = 'general'): string {
   if (!response) {
     return 'No response generated. Please try again.';
   }
@@ -151,6 +173,10 @@ export function validateAndFormatResponse(response: any, type: 'educational' | '
     switch (type) {
       case 'scheme-of-work':
         return formatSchemeOfWork(cleaned);
+      case 'career-guidance':
+        return formatCareerGuidance(cleaned);
+      case 'web-search':
+        return formatWebSearchResults(cleaned);
       case 'educational':
         return formatEducationalContent(cleaned);
       case 'markdown':
@@ -192,4 +218,48 @@ export function formatSchemeOfWork(text: string): string {
     .replace(/\|\s*([^|]*)([-*•])\s*/g, '| $1• ')
     // Clean up trailing spaces
     .replace(/[ \t]+$/gm, '');
+}
+
+/**
+ * Formats career path recommendations specifically
+ */
+export function formatCareerGuidance(text: string): string {
+  if (!text) return '';
+  
+  return formatMarkdownForCards(text)
+    // Ensure career sections are well formatted
+    .replace(/^(Career Path|Recommended Career|Subject Recommendations?):?/gim, '## $1')
+    // Format career fields nicely
+    .replace(/^(Field:?)\s*/gim, '**$1** ')
+    // Format reasoning sections
+    .replace(/^(Reasoning:?|Why:?)\s*/gim, '**$1** ')
+    // Ensure proper formatting for subject advice
+    .replace(/^(Continue Excelling In|Areas for Improvement|New Skills to Explore):?/gim, '### $1')
+    // Format skill lists
+    .replace(/^(\s*)(Skills?:?)\s*/gim, '$1**$2** ')
+    // Ensure proper bullet points for career paths
+    .replace(/^(\s*)[-*]\s*(.*?:)/gm, '$1• **$2**');
+}
+
+/**
+ * Formats web search results specifically
+ */
+export function formatWebSearchResults(text: string): string {
+  if (!text) return '';
+  
+  return formatMarkdownForCards(text)
+    // Ensure search result sections are well formatted
+    .replace(/^(Search Results?|Summary|Overview|Key Points?):?/gim, '## $1')
+    // Format source references nicely
+    .replace(/^(Sources?|References?):?/gim, '### $1')
+    // Format research suggestions
+    .replace(/^(Research Suggestions?|Next Steps?|Additional Resources?):?/gim, '### $1')
+    // Format search tips
+    .replace(/^(Search Tips?|How to Research|Find More):?/gim, '### $1')
+    // Ensure proper formatting for search-related sections
+    .replace(/^(Definition|Background|Key Information|Important Facts?):?/gim, '### $1')
+    // Format academic or educational references
+    .replace(/^(\s*)(Academic|Educational|Official):?/gim, '$1**$2:**')
+    // Ensure proper bullet points for search results
+    .replace(/^(\s*)[-*]\s*(.*?:)/gm, '$1• **$2**');
 }

@@ -10,6 +10,7 @@
 
 import { generateWithDeepSeekAPI, EDUCATIONAL_SYSTEM_PROMPTS, createEducationalPrompt, RESPONSE_FORMATS } from '@/ai/deepseek-api-handler';
 import { WebSearchResponseSchema } from '@/ai/ai-response-schemas';
+import { validateAndFormatResponse } from '@/ai/response-formatter';
 import { z } from 'genkit';
 
 const PerformWebSearchInputSchema = z.object({
@@ -45,19 +46,76 @@ Do not mention that you cannot access live web data; instead, generate the summa
       temperature: 0.7,
     }, WebSearchResponseSchema);
 
-    return result;
+    // Extract and format the search results
+    let summary = '';
+    if (result.searchResults) {
+      summary = validateAndFormatResponse(result.searchResults, 'educational');
+    } else {
+      // Fallback if the result structure is unexpected
+      summary = generateFallbackWebSearchSummary(input.query);
+    }
 
-  } catch (error) {
+    return { summary };
+
+  } catch (error: any) {
     console.error('❌ Error in performWebSearch:', error);
+    
+    // Try to extract content from error if available
+    if (error.detail && error.originalMessage) {
+      try {
+        const errorMessage = error.originalMessage;
+        if (errorMessage.includes('searchResults') || errorMessage.includes('summary')) {
+          // Extract JSON from the error message
+          const jsonMatch = errorMessage.match(/```json\n({[\s\S]*?})\n```/);
+          if (jsonMatch) {
+            const parsedData = JSON.parse(jsonMatch[1]);
+            if (parsedData.searchResults) {
+              return {
+                summary: validateAndFormatResponse(parsedData.searchResults, 'educational')
+              };
+            }
+          }
+        }
+      } catch (parseError) {
+        console.error('Failed to parse web search data from error:', parseError);
+      }
+    }
+    
+    // Final fallback
     return {
-      summary: `# Search Results for "${input.query}"
-
-I encountered an error while generating the summary. Please try rephrasing your search query or try again later.
-
-## Suggested Actions:
-- Check your spelling
-- Try more specific keywords
-- Use different search terms`
+      summary: generateFallbackWebSearchSummary(input.query)
     };
   }
+}
+
+// Fallback web search summary generator
+function generateFallbackWebSearchSummary(query: string): string {
+  const fallbackSummary = `# Search Results for "${query}"
+
+## Overview
+I encountered an issue while generating the detailed summary for your search query. However, here are some general guidelines and suggestions for your research topic.
+
+## Research Suggestions
+To find reliable information about "${query}", consider:
+
+• **Academic Sources**: Look for peer-reviewed articles and educational websites
+• **Official Organizations**: Check government, educational institution, or professional organization websites
+• **Recent Publications**: Ensure the information is current and up-to-date
+• **Multiple Perspectives**: Compare information from different credible sources
+
+## Next Steps
+1. **Refine Your Search**: Try using more specific keywords related to your topic
+2. **Use Academic Databases**: Consider resources like Google Scholar or educational databases
+3. **Consult Experts**: Reach out to teachers, librarians, or subject matter experts
+4. **Verify Information**: Cross-check facts with multiple reliable sources
+
+## Need Help?
+If you're researching for educational purposes, consider:
+- Breaking down complex topics into smaller, more specific questions
+- Using educational resources recommended by your institution
+- Discussing your research approach with teachers or tutors
+
+*Note: For the most current and detailed information, please consult recent academic sources and official publications related to your specific research needs.*`;
+
+  return validateAndFormatResponse(fallbackSummary, 'educational');
 }
