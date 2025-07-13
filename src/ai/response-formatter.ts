@@ -162,7 +162,7 @@ export function truncateForPreview(text: string, maxLength: number = 150): strin
 /**
  * Validates and cleans AI response before formatting
  */
-export function validateAndFormatResponse(response: any, type: 'educational' | 'general' | 'markdown' | 'scheme-of-work' | 'career-guidance' | 'web-search' = 'general'): string {
+export function validateAndFormatResponse(response: any, type: 'educational' | 'general' | 'markdown' | 'scheme-of-work' | 'career-guidance' | 'web-search' | 'learning-path' = 'general'): string {
   if (!response) {
     return 'No response generated. Please try again.';
   }
@@ -177,6 +177,8 @@ export function validateAndFormatResponse(response: any, type: 'educational' | '
         return formatCareerGuidance(cleaned);
       case 'web-search':
         return formatWebSearchResults(cleaned);
+      case 'learning-path':
+        return formatLearningPath(cleaned);
       case 'educational':
         return formatEducationalContent(cleaned);
       case 'markdown':
@@ -262,4 +264,44 @@ export function formatWebSearchResults(text: string): string {
     .replace(/^(\s*)(Academic|Educational|Official):?/gim, '$1**$2:**')
     // Ensure proper bullet points for search results
     .replace(/^(\s*)[-*]\s*(.*?:)/gm, '$1• **$2**');
+}
+
+/**
+ * Format learning path content with educational structure
+ */
+export function formatLearningPath(content: string): string {
+  try {
+    // Remove markdown code blocks if present
+    const cleanContent = content.replace(/```(?:json|markdown)?\n?/g, '').trim();
+    
+    // Check if content is already well-formatted
+    if (cleanContent.includes('## Week') || cleanContent.includes('### Module') || cleanContent.includes('**Learning Objectives:**')) {
+      return cleanContent;
+    }
+    
+    // Apply learning path formatting
+    return cleanContent
+      // Format main topics as headers
+      .replace(/^(\d+\.\s*[^:\n]+):?\s*$/gm, '## $1\n')
+      // Format subtopics
+      .replace(/^[-•]\s*([^:\n]+):?\s*$/gm, '### $1\n')
+      // Format learning objectives
+      .replace(/^(Learning Objectives?|Objectives?|Goals?):\s*$/gmi, '**Learning Objectives:**\n')
+      // Format prerequisites
+      .replace(/^(Prerequisites?|Required Knowledge):\s*$/gmi, '**Prerequisites:**\n')
+      // Format resources
+      .replace(/^(Resources?|Materials?|Tools?):\s*$/gmi, '**Recommended Resources:**\n')
+      // Format assessments
+      .replace(/^(Assessments?|Evaluation|Testing):\s*$/gmi, '**Assessment Methods:**\n')
+      // Format timeline
+      .replace(/^(Timeline|Duration|Schedule):\s*$/gmi, '**Estimated Timeline:**\n')
+      // Add bullet points for lists
+      .replace(/^(\d+)\.\s*([^:\n]+)$/gm, '• **Week $1:** $2')
+      // Clean up extra whitespace
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  } catch (error) {
+    console.error('Error formatting learning path:', error);
+    return content;
+  }
 }

@@ -9,6 +9,8 @@
 
 import { generateWithDeepSeekAPI, EDUCATIONAL_SYSTEM_PROMPTS, createEducationalPrompt, RESPONSE_FORMATS } from '@/ai/deepseek-api-handler';
 import { SubjectAnalysisResponseSchema } from '@/ai/ai-response-schemas';
+import { parseJsonFromLLM } from '@/ai/parseJsonFromLLM';
+import { validateAndFormatResponse } from '@/ai/response-formatter';
 import { z } from 'genkit';
 
 const AnalyzeSubjectInputSchema = z.object({
@@ -46,7 +48,49 @@ Make your analysis engaging and informative for students. Write it as a well-str
       temperature: 0.7,
     }, SubjectAnalysisResponseSchema);
 
-    return result;
+    // Extract the analysis content
+    let analysisContent = '';
+    const typedResult = result as any;
+    
+    try {
+      if (typedResult && typeof typedResult === 'object') {
+        if (typedResult.analysis) {
+          analysisContent = String(typedResult.analysis);
+        } else {
+          analysisContent = String(typedResult);
+        }
+      } else if (typeof result === 'string') {
+        try {
+          const jsonResponse = parseJsonFromLLM(result) as any;
+          if (jsonResponse && jsonResponse.analysis) {
+            analysisContent = String(jsonResponse.analysis);
+          } else {
+            analysisContent = result;
+          }
+        } catch {
+          analysisContent = result;
+        }
+      }
+    } catch (parseError) {
+      console.warn('⚠️  Failed to parse subject analysis response, using raw result:', parseError);
+      analysisContent = String(result);
+    }
+
+    // Apply formatting if we have content
+    if (analysisContent) {
+      const formattedContent = await validateAndFormatResponse(
+        { analysis: analysisContent },
+        'educational'
+      );
+      
+      if (typeof formattedContent === 'string') {
+        return { analysis: formattedContent };
+      } else if (formattedContent && typeof formattedContent === 'object' && 'analysis' in formattedContent) {
+        return formattedContent as AnalyzeSubjectOutput;
+      }
+    }
+
+    return { analysis: analysisContent || `**${input.subjectTitle}** is an important academic subject that offers valuable learning opportunities.` };
 
   } catch (error) {
     console.error('❌ Error in analyzeSubject:', error);

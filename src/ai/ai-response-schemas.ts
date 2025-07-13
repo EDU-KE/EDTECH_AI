@@ -156,210 +156,169 @@ const webSearchContent = z.string()
     .replace(/[ \t]+$/gm, '')
   );
 
-/**
- * Schema for AI Tutoring responses
- */
-export const TutoringResponseSchema = z.object({
-  answer: flexibleJSONToText.describe('The tutoring answer with clean formatting'),
-});
+// Learning Path Content Transformer
+export const learningPathContentTransformer = z.any()
+  .transform((content) => {
+    if (typeof content === 'string') {
+      return content;
+    }
+    
+    if (typeof content === 'object' && content !== null) {
+      // Handle structured learning path data
+      if (content.learningPath) {
+        return String(content.learningPath);
+      }
+      
+      if (content.path || content.curriculum) {
+        return String(content.path || content.curriculum);
+      }
+      
+      // Handle step-by-step learning paths
+      if (content.steps || content.modules || content.weeks) {
+        const steps = content.steps || content.modules || content.weeks;
+        let result = '# Personalized Learning Path\n\n';
+        
+        if (Array.isArray(steps)) {
+          steps.forEach((step: any, index: number) => {
+            result += `## Step ${index + 1}: ${step.title || step.name || `Module ${index + 1}`}\n\n`;
+            if (step.description) {
+              result += `${step.description}\n\n`;
+            }
+            if (step.objectives) {
+              result += `**Learning Objectives:**\n`;
+              const objectives = Array.isArray(step.objectives) ? step.objectives : [step.objectives];
+              result += objectives.map((obj: any) => `• ${obj}`).join('\n') + '\n\n';
+            }
+            if (step.duration) {
+              result += `**Duration:** ${step.duration}\n\n`;
+            }
+            if (step.resources) {
+              result += `**Resources:**\n`;
+              const resources = Array.isArray(step.resources) ? step.resources : [step.resources];
+              result += resources.map((res: any) => `• ${res}`).join('\n') + '\n\n';
+            }
+            result += '---\n\n';
+          });
+        }
+        return result;
+      }
+      
+      // Fallback: convert object to formatted text
+      return convertObjectToFormattedText(content);
+    }
+    
+    return String(content);
+  });
 
-/**
- * Schema for Lesson Plan responses
- */
+// Web Search Content Transformer
+export const webSearchContentTransformer = z.any()
+  .transform((content) => {
+    if (typeof content === 'string') {
+      return content;
+    }
+    
+    if (typeof content === 'object' && content !== null) {
+      // Handle structured web search data
+      if (content.searchResults || content.summary) {
+        return String(content.searchResults || content.summary);
+      }
+      
+      if (content.results) {
+        const results = content.results;
+        if (Array.isArray(results)) {
+          let output = '# Search Results\n\n';
+          results.forEach((result: any, index: number) => {
+            output += `## Result ${index + 1}\n\n`;
+            if (result.title) output += `**Title:** ${result.title}\n\n`;
+            if (result.description) output += `${result.description}\n\n`;
+            if (result.url) output += `**Source:** ${result.url}\n\n`;
+            output += '---\n\n';
+          });
+          return output;
+        }
+      }
+      
+      // Fallback: convert object to formatted text
+      return convertObjectToFormattedText(content);
+    }
+    
+    return String(content);
+  });
+
+// Lesson Plan Content Transformer
+export const lessonPlanContentTransformer = z.any()
+  .transform((content) => {
+    if (typeof content === 'string') {
+      return content;
+    }
+    
+    if (typeof content === 'object' && content !== null) {
+      // Handle structured lesson plan data
+      if (content.lessonPlan) {
+        return String(content.lessonPlan);
+      }
+      
+      if (content.plan || content.curriculum) {
+        return String(content.plan || content.curriculum);
+      }
+      
+      // Handle detailed lesson plan structure
+      if (content.subject || content.topic || content.objectives) {
+        let result = `# Lesson Plan: ${content.topic || 'Learning Session'}\n\n`;
+        
+        if (content.subject) {
+          result += `**Subject:** ${content.subject}\n\n`;
+        }
+        
+        if (content.duration) {
+          result += `**Duration:** ${content.duration}\n\n`;
+        }
+        
+        if (content.objectives) {
+          result += `## Learning Objectives\n${content.objectives}\n\n`;
+        }
+        
+        if (content.materials) {
+          result += `## Materials\n`;
+          const materials = Array.isArray(content.materials) ? content.materials : [content.materials];
+          result += materials.map((material: any) => `• ${material}`).join('\n') + '\n\n';
+        }
+        
+        if (content.activities) {
+          result += `## Activities\n`;
+          const activities = Array.isArray(content.activities) ? content.activities : [content.activities];
+          activities.forEach((activity: any, index: number) => {
+            result += `### Activity ${index + 1}\n${activity}\n\n`;
+          });
+        }
+        
+        if (content.assessment) {
+          result += `## Assessment\n${content.assessment}\n\n`;
+        }
+        
+        return result;
+      }
+      
+      // Fallback: convert object to formatted text
+      return convertObjectToFormattedText(content);
+    }
+    
+    return String(content);
+  });
+
+// Response Schemas
 export const LessonPlanResponseSchema = z.object({
-  lessonPlan: educationalContent.describe('A detailed lesson plan formatted as clean Markdown'),
+  lessonPlan: z.string().describe('A detailed lesson plan with clear structure, activities, and assessment methods'),
 });
 
-/**
- * Schema for Subject Analysis responses
- */
 export const SubjectAnalysisResponseSchema = z.object({
-  analysis: flexibleJSONToText.describe('Analysis of the subject with clean educational formatting'),
+  analysis: z.string().describe('A comprehensive analysis of the subject with strengths, weaknesses, and recommendations'),
 });
 
-/**
- * Schema for Exam Questions responses
- */
-export const ExamQuestionsResponseSchema = z.object({
-  questions: flexibleJSONToText.describe('Generated exam questions with clean formatting'),
+export const TutoringResponseSchema = z.object({
+  answer: z.string().describe('A personalized tutoring response with explanations and guidance'),
 });
 
-/**
- * Schema for Study Guide responses
- */
-export const StudyGuideResponseSchema = z.object({
-  guide: educationalContent.describe('Comprehensive study guide formatted as clean Markdown'),
-});
-
-/**
- * Schema for Class Notes responses
- */
-export const ClassNotesResponseSchema = z.object({
-  notes: educationalContent.describe('Organized class notes with proper structure'),
-});
-
-/**
- * Schema for Web Search responses
- */
 export const WebSearchResponseSchema = z.object({
-  searchResults: webSearchContent.describe('Educational web search results with well-formatted summaries and references'),
+  searchResults: z.string().describe('Summarized web search results formatted for educational use'),
 });
-
-/**
- * Schema for Study Tips responses
- */
-export const StudyTipsResponseSchema = z.object({
-  tips: flexibleJSONToText.describe('Practical study tips formatted clearly'),
-});
-
-/**
- * Schema for Career Path responses
- */
-export const CareerPathResponseSchema = z.object({
-  careerInfo: careerGuidanceContent.describe('Career path information with structured guidance'),
-  recommendedPaths: z.array(z.any()).optional().describe('Array of recommended career paths'),
-  subjectRecommendations: careerGuidanceContent.optional().describe('Subject and skills recommendations for career development'),
-});
-
-/**
- * Schema for Progress Insights responses
- */
-export const ProgressInsightsResponseSchema = z.object({
-  insights: flexibleJSONToText.describe('Student progress insights with actionable feedback'),
-});
-
-/**
- * Schema for Personalized Learning Path responses
- */
-export const LearningPathResponseSchema = z.object({
-  learningPath: educationalContent.describe('Customized learning path with clear milestones'),
-});
-
-/**
- * Schema for Scheme of Work responses
- */
-export const SchemeOfWorkResponseSchema = z.object({
-  scheme: schemeOfWorkContent.describe('Detailed scheme of work as a markdown table with weekly breakdown'),
-  schemeOfWork: schemeOfWorkContent.optional().describe('Alternative field for scheme of work content'),
-});
-
-/**
- * Schema for Recommendations responses
- */
-export const RecommendationsResponseSchema = z.object({
-  recommendations: flexibleJSONToText.describe('Educational recommendations with explanations'),
-});
-
-/**
- * Schema for Presentation Generation responses
- */
-export const PresentationResponseSchema = z.object({
-  presentation: educationalContent.describe('Structured presentation content with slides'),
-});
-
-/**
- * Schema for Notes Summarization responses
- */
-export const SummaryResponseSchema = z.object({
-  summary: educationalContent.describe('Concise summary of educational content'),
-});
-
-/**
- * Schema for Chat Tone Analysis responses
- */
-export const ChatToneResponseSchema = z.object({
-  analysis: flexibleJSONToText.describe('Analysis of chat tone and communication patterns'),
-});
-
-/**
- * Schema for Activity Analysis responses
- */
-export const ActivityAnalysisResponseSchema = z.object({
-  analysis: flexibleJSONToText.describe('Student activity analysis with insights'),
-});
-
-/**
- * Schema for Exam Explanation responses
- */
-export const ExamExplanationResponseSchema = z.object({
-  explanation: educationalContent.describe('Detailed explanation of exam topics'),
-});
-
-/**
- * Schema for Exam Grading responses
- */
-export const GradingResponseSchema = z.object({
-  feedback: flexibleJSONToText.describe('Detailed grading feedback with scores and suggestions'),
-  grade: z.number().min(0).max(100).optional().describe('Optional numerical grade from 0 to 100'),
-});
-
-/**
- * Schema for Diary Advice responses
- */
-export const DiaryAdviceResponseSchema = z.object({
-  advice: educationalContent.describe('Personal diary advice with supportive guidance'),
-});
-
-/**
- * Schema for Tutor Recommendations responses
- */
-export const TutorRecommendationResponseSchema = z.object({
-  recommendations: flexibleJSONToText.describe('Tutor recommendations with matching criteria'),
-});
-
-/**
- * Schema for Contest Recommendations responses
- */
-export const ContestRecommendationResponseSchema = z.object({
-  contests: flexibleJSONToText.describe('Contest recommendations with details and benefits'),
-});
-
-/**
- * Schema for Chat Response Suggestions
- */
-export const ChatSuggestionResponseSchema = z.object({
-  suggestion: flexibleJSONToText.describe('Suggested response for educational chat'),
-});
-
-/**
- * Schema for Career Guidance responses
- */
-export const CareerGuidanceResponseSchema = z.object({
-  guidance: careerGuidanceContent.describe('Structured career guidance content'),
-});
-
-/**
- * Generic schema for any AI response with text cleaning
- */
-export const GenericAIResponseSchema = z.object({
-  content: flexibleJSONToText.describe('Generic AI response with clean text formatting'),
-});
-
-/**
- * Helper type for all possible response schemas
- */
-export type AIResponseSchemas = 
-  | typeof TutoringResponseSchema
-  | typeof LessonPlanResponseSchema
-  | typeof SubjectAnalysisResponseSchema
-  | typeof StudyGuideResponseSchema
-  | typeof ExamQuestionsResponseSchema
-  | typeof StudyTipsResponseSchema
-  | typeof LearningPathResponseSchema
-  | typeof ProgressInsightsResponseSchema
-  | typeof CareerPathResponseSchema
-  | typeof WebSearchResponseSchema
-  | typeof ClassNotesResponseSchema
-  | typeof PresentationResponseSchema
-  | typeof DiaryAdviceResponseSchema
-  | typeof RecommendationsResponseSchema
-  | typeof SchemeOfWorkResponseSchema
-  | typeof ChatToneResponseSchema
-  | typeof ActivityAnalysisResponseSchema
-  | typeof ContestRecommendationResponseSchema
-  | typeof TutorRecommendationResponseSchema
-  | typeof ChatSuggestionResponseSchema
-  | typeof SummaryResponseSchema
-  | typeof ExamExplanationResponseSchema
-  | typeof GradingResponseSchema
-  | typeof GenericAIResponseSchema;

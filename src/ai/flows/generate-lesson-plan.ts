@@ -9,6 +9,8 @@
 
 import { generateWithDeepSeekAPI, EDUCATIONAL_SYSTEM_PROMPTS, createEducationalPrompt, RESPONSE_FORMATS } from '@/ai/deepseek-api-handler';
 import { LessonPlanResponseSchema } from '@/ai/ai-response-schemas';
+import { parseJsonFromLLM } from '@/ai/parseJsonFromLLM';
+import { validateAndFormatResponse } from '@/ai/response-formatter';
 import { z } from 'genkit';
 
 const GenerateLessonPlanInputSchema = z.object({
@@ -51,7 +53,81 @@ Format the content with proper Markdown structure for easy reading.`,
       temperature: 0.7,
     }, LessonPlanResponseSchema);
 
-    return result;
+    // Extract the lesson plan content
+    let lessonPlanContent = '';
+    const typedResult = result as any;
+    
+    try {
+      if (typedResult && typeof typedResult === 'object') {
+        if (typedResult.lessonPlan) {
+          lessonPlanContent = String(typedResult.lessonPlan);
+        } else if (typeof typedResult === 'string') {
+          lessonPlanContent = typedResult;
+        } else {
+          // Try to parse as JSON if it's a string containing JSON
+          const jsonResponse = parseJsonFromLLM(JSON.stringify(typedResult)) as any;
+          if (jsonResponse && jsonResponse.lessonPlan) {
+            lessonPlanContent = String(jsonResponse.lessonPlan);
+          } else {
+            lessonPlanContent = String(typedResult);
+          }
+        }
+      } else if (typeof result === 'string') {
+        // Try to parse JSON from string
+        const jsonResponse = parseJsonFromLLM(result) as any;
+        if (jsonResponse && jsonResponse.lessonPlan) {
+          lessonPlanContent = String(jsonResponse.lessonPlan);
+        } else {
+          lessonPlanContent = result;
+        }
+      }
+    } catch (parseError) {
+      console.warn('⚠️  Failed to parse lesson plan response, using raw result:', parseError);
+      lessonPlanContent = String(result);
+    }
+
+    // Apply formatting if we have content
+    if (lessonPlanContent) {
+      const formattedContent = await validateAndFormatResponse(
+        { lessonPlan: lessonPlanContent },
+        'educational'
+      );
+      
+      if (typeof formattedContent === 'string') {
+        return { lessonPlan: formattedContent };
+      } else if (formattedContent && typeof formattedContent === 'object' && 'lessonPlan' in formattedContent) {
+        return formattedContent as GenerateLessonPlanOutput;
+      }
+    }
+
+    // Fallback if content processing fails
+    return {
+      lessonPlan: lessonPlanContent || `# Lesson Plan: ${input.topic}
+
+## Subject: ${input.subject}
+## Duration: ${input.duration}
+
+### Learning Objectives
+${input.objectives}
+
+### Materials
+- Whiteboard/flipchart
+- Handouts (to be prepared)
+- Writing materials
+
+### Lesson Structure
+1. **Introduction** (5 minutes) - Overview of the topic
+2. **Main Activity** (Most of lesson time) - Interactive learning
+3. **Assessment** (5-10 minutes) - Check understanding
+4. **Conclusion** (5 minutes) - Summary and next steps
+
+### Assessment Methods
+- Formative assessment through questioning
+- Exit ticket or quick quiz
+- Observation of student participation
+
+*Note: Basic lesson plan structure generated.*`
+    };
 
   } catch (error) {
     console.error('❌ Error in generateLessonPlan:', error);
