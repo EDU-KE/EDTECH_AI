@@ -40,10 +40,7 @@ export async function recommendCareerPath(input: RecommendCareerPathInput): Prom
 const prompt = ai.definePrompt({
   name: 'recommendCareerPathPrompt',
   input: {schema: StudentPerformanceSchema},
-  model: deepseekChat,
-  model: deepseekChat,
   output: {schema: RecommendCareerPathOutputSchema},
-  model: deepseekChat,
   model: deepseekChat,
   prompt: `You are an expert AI career counselor for students. Your task is to analyze a student's academic performance and interests to provide insightful and actionable career guidance.
 
@@ -80,16 +77,111 @@ const recommendCareerPathFlow = ai.defineFlow(
     outputSchema: RecommendCareerPathOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    const result = output || {};
-    const formattedResult = {};
-    for (const [key, value] of Object.entries(result)) {
-      if (typeof value === 'string') {
-        formattedResult[key] = validateAndFormatResponse(value, 'general');
-      } else {
-        formattedResult[key] = value;
+    try {
+      const {output} = await prompt(input);
+      const result = output || {};
+      const formattedResult: Record<string, any> = {};
+      
+      for (const [key, value] of Object.entries(result)) {
+        if (typeof value === 'string') {
+          // Use educational formatting for career guidance content
+          formattedResult[key] = validateAndFormatResponse(value, 'educational');
+        } else {
+          formattedResult[key] = value;
+        }
       }
+      
+      return formattedResult as RecommendCareerPathOutput;
+    } catch (error: any) {
+      // Handle DeepSeek response format issues
+      console.error('Error with career path AI prompt:', error);
+      
+      // If there's a schema validation error, try to extract data from the error details
+      if (error.detail && error.originalMessage) {
+        const errorMessage = error.originalMessage;
+        if (errorMessage.includes('recommendedPaths') || errorMessage.includes('career')) {
+          try {
+            // Extract JSON from the error message
+            const jsonMatch = errorMessage.match(/```json\n({[\s\S]*?})\n```/);
+            if (jsonMatch) {
+              const parsedData = JSON.parse(jsonMatch[1]);
+              if (parsedData.recommendedPaths || parsedData.subjectRecommendations) {
+                const formattedResult: Record<string, any> = {};
+                
+                for (const [key, value] of Object.entries(parsedData)) {
+                  if (typeof value === 'string') {
+                    formattedResult[key] = validateAndFormatResponse(value, 'educational');
+                  } else {
+                    formattedResult[key] = value;
+                  }
+                }
+                
+                return formattedResult as RecommendCareerPathOutput;
+              }
+            }
+          } catch (parseError) {
+            console.error('Failed to parse career path data from error:', parseError);
+          }
+        }
+      }
+      
+      // Fallback: generate basic career recommendations
+      const fallbackRecommendations = generateFallbackCareerRecommendations(input);
+      return fallbackRecommendations;
     }
-    return formattedResult as any;;
   }
 );
+
+// Fallback career recommendations generator
+function generateFallbackCareerRecommendations(input: RecommendCareerPathInput): RecommendCareerPathOutput {
+  const { strongestSubjects, interests, recentScores } = input;
+  
+  // Generate basic career recommendations based on strongest subjects
+  const careerMappings: Record<string, { career: string; field: string; reasoning: string }[]> = {
+    Mathematics: [
+      { career: "Data Scientist", field: "Technology", reasoning: "Strong math skills are essential for statistical analysis and machine learning." },
+      { career: "Financial Analyst", field: "Finance", reasoning: "Mathematical proficiency is crucial for financial modeling and analysis." }
+    ],
+    Science: [
+      { career: "Research Scientist", field: "Research & Development", reasoning: "Scientific knowledge provides a strong foundation for research careers." },
+      { career: "Medical Professional", field: "Healthcare", reasoning: "Science background is essential for understanding medical concepts." }
+    ],
+    English: [
+      { career: "Content Writer", field: "Communications", reasoning: "Strong language skills translate well to writing and communication roles." },
+      { career: "Teacher", field: "Education", reasoning: "English proficiency is valuable for educational and training positions." }
+    ],
+    Technology: [
+      { career: "Software Developer", field: "Technology", reasoning: "Technology skills are directly applicable to software development careers." },
+      { career: "IT Consultant", field: "Technology", reasoning: "Technical knowledge is valuable for consulting and system design roles." }
+    ]
+  };
+  
+  const recommendedPaths: { career: string; field: string; reasoning: string }[] = [];
+  
+  // Generate recommendations based on strongest subjects
+  for (const subject of strongestSubjects.slice(0, 2)) {
+    const mappings = careerMappings[subject] || [
+      { career: `${subject} Specialist`, field: "Education", reasoning: `Your strength in ${subject} makes you well-suited for specialized roles in this field.` }
+    ];
+    recommendedPaths.push(...mappings.slice(0, 2));
+  }
+  
+  // Fill remaining slots with general recommendations
+  while (recommendedPaths.length < 4) {
+    recommendedPaths.push({
+      career: "Project Manager",
+      field: "Business",
+      reasoning: "Strong academic performance indicates good organizational and analytical skills suitable for project management."
+    });
+  }
+  
+  const subjectRecommendations = `## Subject Focus Recommendations\n\n` +
+    `**Continue Excelling In:** ${strongestSubjects.join(', ')}\n\n` +
+    `**Areas for Improvement:** Focus on strengthening your foundation in weaker subjects as they can complement your strengths.\n\n` +
+    `**New Skills to Explore:** Consider developing skills in communication, critical thinking, and digital literacy to enhance your career prospects.`;
+  
+  return {
+    recommendedPaths: recommendedPaths.slice(0, 4),
+    subjectRecommendations: validateAndFormatResponse(subjectRecommendations, 'educational')
+  };
+}

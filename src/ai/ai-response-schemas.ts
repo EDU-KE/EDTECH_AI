@@ -106,6 +106,56 @@ const schemeOfWorkContent = z.string()
     .replace(/\.([A-Z])/g, '. $1')
   );
 
+// Career guidance specific content transform
+const careerGuidanceContent = z.string()
+  .transform((str) => str
+    .trim()
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    // Format career sections
+    .replace(/^(Career Path|Recommended Career|Subject Recommendations?):?/gim, '## $1')
+    // Format career fields
+    .replace(/^(Field:?)\s*/gim, '**$1** ')
+    // Format reasoning sections
+    .replace(/^(Reasoning:?|Why:?)\s*/gim, '**$1** ')
+    // Format subject advice sections
+    .replace(/^(Continue Excelling In|Areas for Improvement|New Skills to Explore):?/gim, '### $1')
+    // Format skill lists
+    .replace(/^(\s*)(Skills?:?)\s*/gim, '$1**$2** ')
+    // Format career path bullet points
+    .replace(/^(\s*)[-*]\s*(.*?:)/gm, '$1• **$2**')
+    // Remove excessive newlines
+    .replace(/\n{3,}/g, '\n\n')
+    // Remove trailing spaces
+    .replace(/[ \t]+$/gm, '')
+  );
+
+// Web search specific content transform
+const webSearchContent = z.string()
+  .transform((str) => str
+    .trim()
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    // Format search result sections
+    .replace(/^(Search Results?|Summary|Overview|Key Points?):?/gim, '## $1')
+    // Format source references
+    .replace(/^(Sources?|References?):?/gim, '### $1')
+    // Format research suggestions
+    .replace(/^(Research Suggestions?|Next Steps?|Additional Resources?):?/gim, '### $1')
+    // Format search tips
+    .replace(/^(Search Tips?|How to Research|Find More):?/gim, '### $1')
+    // Format educational sections
+    .replace(/^(Definition|Background|Key Information|Important Facts?):?/gim, '### $1')
+    // Format academic references
+    .replace(/^(\s*)(Academic|Educational|Official):?/gim, '$1**$2:**')
+    // Format search result bullet points
+    .replace(/^(\s*)[-*]\s*(.*?:)/gm, '$1• **$2**')
+    // Remove excessive newlines
+    .replace(/\n{3,}/g, '\n\n')
+    // Remove trailing spaces
+    .replace(/[ \t]+$/gm, '')
+  );
+
 /**
  * Schema for AI Tutoring responses
  */
@@ -152,7 +202,7 @@ export const ClassNotesResponseSchema = z.object({
  * Schema for Web Search responses
  */
 export const WebSearchResponseSchema = z.object({
-  searchResults: flexibleJSONToText.describe('Educational web search results with summaries'),
+  searchResults: webSearchContent.describe('Educational web search results with well-formatted summaries and references'),
 });
 
 /**
@@ -166,7 +216,9 @@ export const StudyTipsResponseSchema = z.object({
  * Schema for Career Path responses
  */
 export const CareerPathResponseSchema = z.object({
-  careerInfo: educationalContent.describe('Career path information with structured guidance'),
+  careerInfo: careerGuidanceContent.describe('Career path information with structured guidance'),
+  recommendedPaths: z.array(z.any()).optional().describe('Array of recommended career paths'),
+  subjectRecommendations: careerGuidanceContent.optional().describe('Subject and skills recommendations for career development'),
 });
 
 /**
@@ -267,6 +319,13 @@ export const ContestRecommendationResponseSchema = z.object({
  */
 export const ChatSuggestionResponseSchema = z.object({
   suggestion: flexibleJSONToText.describe('Suggested response for educational chat'),
+});
+
+/**
+ * Schema for Career Guidance responses
+ */
+export const CareerGuidanceResponseSchema = z.object({
+  guidance: careerGuidanceContent.describe('Structured career guidance content'),
 });
 
 /**
