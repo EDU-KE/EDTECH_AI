@@ -95,59 +95,14 @@ export function AppShellClient({ title }: AppShellClientProps) {
   }
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-4">
-        <Sheet>
-        <SheetTrigger asChild>
-            <Button
-            variant="outline"
-            size="icon"
-            className="shrink-0 md:hidden"
-            >
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle navigation menu</span>
-            </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="flex flex-col p-0">
-            <SheetHeader className="p-4 border-b">
-                <SheetTitle asChild>
-                    <Link
-                        href="/dashboard"
-                        className="flex items-center gap-2 text-lg font-semibold"
-                    >
-                        <GraduationCap className="h-6 w-6 text-primary" />
-                        <span className="font-headline">EdTech AI Hub</span>
-                    </Link>
-                </SheetTitle>
-                <SheetDescription className="sr-only">
-                    Main navigation menu for the application.
-                </SheetDescription>
-            </SheetHeader>
-            <nav className="grid gap-2 text-lg font-medium overflow-auto p-4">
-             {mainNav.map((group, index) => (
-                <React.Fragment key={group.title}>
-                  {index > 0 && <DropdownMenuSeparator className="my-2" />}
-                  <p className="px-3 py-2 text-sm font-semibold text-muted-foreground">{group.title}</p>
-                  {group.items.map(item => {
-                    const Icon = item.icon;
-                    return (
-                        <NavLink key={item.href} href={item.href} isMobile>
-                            <Icon className="h-4 w-4" />
-                            {item.label}
-                        </NavLink>
-                    )
-                  })}
-                </React.Fragment>
-              ))}
-            </nav>
-        </SheetContent>
-        </Sheet>
-        <div className="w-full flex-1">
-            <h1 className="text-xl font-semibold md:text-2xl font-headline">{title}</h1>
+    <header className="flex h-14 items-center gap-2 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 md:hidden">
+        <div className="flex-1">
+            <h1 className="text-lg font-semibold md:text-xl font-headline truncate">{title}</h1>
         </div>
         <DropdownMenu>
         <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
+            <Button variant="outline" size="icon" className="relative h-8 w-8 shrink-0">
+                <Bell className="h-4 w-4" />
                 {notifications.length > 0 && (
                     <span className="absolute -top-1 -right-1 flex h-3 w-3">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
@@ -157,15 +112,15 @@ export function AppShellClient({ title }: AppShellClientProps) {
                 <span className="sr-only">Notifications</span>
             </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-80">
+        <DropdownMenuContent align="end" className="w-72 sm:w-80">
             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {notifications.length > 0 ? (
                 notifications.map((notification) => (
-                    <DropdownMenuItem key={notification.id} onSelect={(e) => e.preventDefault()} className="flex items-start justify-between gap-2 whitespace-normal">
-                        <div className="flex flex-col">
-                            <p className="font-semibold">{notification.title}</p>
-                            <p className="text-xs text-muted-foreground">{notification.description}</p>
+                    <DropdownMenuItem key={notification.id} onSelect={(e) => e.preventDefault()} className="flex items-start justify-between gap-2 whitespace-normal p-3">
+                        <div className="flex flex-col space-y-1 min-w-0">
+                            <p className="font-medium text-sm leading-snug">{notification.title}</p>
+                            <p className="text-xs text-muted-foreground leading-snug">{notification.description}</p>
                         </div>
                         <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => dismissNotification(notification.id)}>
                         <X className="h-4 w-4" />
@@ -177,7 +132,6 @@ export function AppShellClient({ title }: AppShellClientProps) {
             )}
         </DropdownMenuContent>
         </DropdownMenu>
-        <UserNav />
     </header>
   )
 }

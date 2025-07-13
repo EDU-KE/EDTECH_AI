@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react"
@@ -38,9 +37,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { NavLink } from "./nav-link";
 import { AppShellClient } from "./app-shell-client";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
-import { SessionTimeoutDialog } from "./session-timeout-dialog";
-import { useAuth } from "@/contexts/AuthContext";
-import { signOut } from "@/lib/auth";
+import { SessionTimeoutDialog, SessionStatusIndicator } from "./session-timeout-dialog";
+import { useAuth } from "@/lib/auth-context";
 
 interface AppShellProps {
   children: React.ReactNode
@@ -54,6 +52,7 @@ const mainNav = [
         { href: "/progress", icon: LineChart, label: "Progress" },
         { href: "/activity", icon: Activity, label: "Activity Tracker" },
         { href: "/diary", icon: BookMarked, label: "Digital Diary" },
+        { href: "/learning-tools", icon: GraduationCap, label: "Learning Tools" },
         { href: "/leaderboard", icon: Trophy, label: "Leaderboard" },
         { href: "/contests", icon: Swords, label: "Contests" },
     ]},
@@ -84,7 +83,7 @@ const mainNav = [
 
 export function AppShell({ children, title }: AppShellProps) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
 
   const handleSessionTimeout = React.useCallback(async () => {
     try {
@@ -95,23 +94,11 @@ export function AppShell({ children, title }: AppShellProps) {
       // Fallback: still redirect even if logout fails
       router.push('/');
     }
-  }, [router]);
-
-  const { isIdle, reset, countdown } = useSessionTimeout({
-    onLogout: handleSessionTimeout,
-  });
-
-  // Don't show session timeout for logged out users
-  const shouldShowTimeout = isIdle && !!user;
+  }, [router, signOut]);
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[240px_1fr]">
-      <SessionTimeoutDialog
-        isOpen={shouldShowTimeout}
-        countdown={countdown}
-        onStay={() => reset()}
-        onLogout={handleSessionTimeout}
-      />
+      <SessionTimeoutDialog />
       
       {/* Mobile Navigation Sheet */}
       <Sheet>
@@ -133,7 +120,10 @@ export function AppShell({ children, title }: AppShellProps) {
                 <span className="text-sm">EdTech AI</span>
               </Link>
             </div>
-            <UserNav />
+            <div className="flex items-center gap-2">
+              <SessionStatusIndicator />
+              <UserNav />
+            </div>
           </header>
         </div>
         <SheetContent side="left" className="flex flex-col p-0 w-64">
@@ -152,7 +142,7 @@ export function AppShell({ children, title }: AppShellProps) {
                   {group.items.map(item => {
                     const Icon = item.icon;
                     return (
-                        <NavLink key={item.href} href={item.href} className="flex items-center gap-3 px-3 py-2 text-sm transition-colors hover:bg-accent rounded-md">
+                        <NavLink key={item.href} href={item.href} isMobile={true}>
                             <Icon className="h-4 w-4" />
                             {item.label}
                         </NavLink>
@@ -198,6 +188,17 @@ export function AppShell({ children, title }: AppShellProps) {
       
       {/* Main Content */}
       <div className="flex flex-col">
+        {/* Desktop Header */}
+        <header className="hidden md:flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+          <div className="flex-1">
+            <h1 className="text-lg font-semibold">{title}</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <SessionStatusIndicator />
+            <UserNav />
+          </div>
+        </header>
+        
         <AppShellClient title={title} />
         <main className="flex flex-1 flex-col p-2 sm:p-4 lg:p-4 bg-background">
           <div className="flex-1">

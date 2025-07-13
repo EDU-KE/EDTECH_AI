@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { Inter, Source_Code_Pro } from 'next/font/google';
 import { cn } from '@/lib/utils';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/lib/auth-context';
 
 const fontBody = Inter({
   subsets: ['latin'],

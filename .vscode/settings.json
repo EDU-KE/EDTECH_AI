@@ -1,4 +1,37 @@
 {
     "IDX.aI.enableInlineCompletion": true,
-    "IDX.aI.enableCodebaseIndexing": true
+    "IDX.aI.enableCodebaseIndexing": true,
+    "css.validate": false,
+    "scss.validate": false,
+    "less.validate": false,
+    "stylelint.validate": ["css", "postcss"],
+    "tailwindCSS.emmetCompletions": true,
+    "tailwindCSS.includeLanguages": {
+        "typescript": "typescript",
+        "javascript": "javascript", 
+        "typescriptreact": "typescriptreact",
+        "javascriptreact": "javascriptreact",
+        "css": "css",
+        "postcss": "postcss"
+    },
+    "tailwindCSS.classAttributes": [
+        "class",
+        "className", 
+        "class:list",
+        "classList",
+        "ngClass"
+    ],
+    "editor.quickSuggestions": {
+        "strings": true
+    },
+    "css.customData": [".vscode/css_custom_data.json"],
+    "files.associations": {
+        "**/globals.css": "postcss",
+        "tailwind.config.*": "javascript"
+    },
+    "emmet.includeLanguages": {
+        "javascript": "javascriptreact",
+        "typescript": "typescriptreact",
+        "postcss": "css"
+    }
 }
