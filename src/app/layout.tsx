@@ -1,9 +1,12 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from 'sonner';
 import { Inter, Source_Code_Pro } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { AuthProvider } from '@/lib/auth-context';
+import { CurriculumWrapper } from '@/components/CurriculumWrapper';
+import { FirebaseErrorBoundary } from '@/components/FirebaseErrorBoundary';
 
 const fontBody = Inter({
   subsets: ['latin'],
@@ -30,10 +33,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("antialiased", fontBody.variable, fontCode.variable)}>
-        <AuthProvider>
-          {children}
-          <Toaster />
-        </AuthProvider>
+        <FirebaseErrorBoundary>
+          <AuthProvider>
+            <CurriculumWrapper>
+              {children}
+            </CurriculumWrapper>
+            <Toaster />
+            <SonnerToaster richColors position="top-right" />
+          </AuthProvider>
+        </FirebaseErrorBoundary>
       </body>
     </html>
   );
