@@ -6,6 +6,8 @@ import {
   User,
   updateProfile,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   FacebookAuthProvider,
   TwitterAuthProvider
@@ -102,7 +104,7 @@ export const signOut = async () => {
   }
 };
 
-// Google Sign In
+// Google Sign In with automatic popup blocking fallback
 export const signInWithGoogle = async () => {
   if (isDemoMode) {
     console.log('🚀 Demo Mode: Social login not available in demo mode');
@@ -115,7 +117,21 @@ export const signInWithGoogle = async () => {
     provider.addScope('profile');
     provider.addScope('email');
     
-    const { user } = await signInWithPopup(auth, provider);
+    let user: User;
+    
+    // Try popup first
+    try {
+      const result = await signInWithPopup(auth, provider);
+      user = result.user;
+    } catch (popupError: any) {
+      if (popupError.code === 'auth/popup-blocked') {
+        // Popup was blocked, fall back to redirect
+        console.log('Popup blocked, falling back to redirect...');
+        await signInWithRedirect(auth, provider);
+        return null; // The page will redirect
+      }
+      throw popupError; // Re-throw other errors
+    }
     
     // Check if user profile exists, if not create one
     const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -143,12 +159,44 @@ export const signInWithGoogle = async () => {
     if (error.code === 'auth/popup-closed-by-user') {
       throw new Error('Sign in was cancelled. Please try again.');
     } else if (error.code === 'auth/popup-blocked') {
-      throw new Error('Popup was blocked by your browser. Please allow popups and try again.');
+      throw new Error('Authentication will continue with a page redirect...');
     } else if (error.code === 'auth/unauthorized-domain') {
       throw new Error('This domain is not authorized for Google sign-in. Please contact support.');
     }
     
     throw new Error(error.message || 'Failed to sign in with Google. Please try again.');
+  }
+};
+
+// Handle redirect result (important for redirect-based authentication)
+export const handleRedirectResult = async () => {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result && result.user) {
+      // Check if user profile exists, if not create one
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      let profile: UserProfile;
+
+      if (!userDoc.exists()) {
+        profile = {
+          uid: result.user.uid,
+          email: result.user.email!,
+          displayName: result.user.displayName || 'User',
+          role: 'student',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        await setDoc(doc(db, 'users', result.user.uid), profile);
+      } else {
+        profile = userDoc.data() as UserProfile;
+      }
+
+      return { user: result.user, profile };
+    }
+    return null;
+  } catch (error: any) {
+    console.error('Error handling redirect result:', error);
+    throw new Error(error.message || 'Failed to complete sign in. Please try again.');
   }
 };
 

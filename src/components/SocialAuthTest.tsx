@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { signInWithGoogle, signInWithTwitter } from "@/lib/auth"
-import { useAuth } from "@/contexts/AuthContext"
+import { useAuth } from "@/lib/auth-context"
 import { AlertCircle, CheckCircle2 } from "lucide-react"
 
 export default function SocialAuthTest() {

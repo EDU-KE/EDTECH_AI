@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from 'firebase/auth';
-import { onAuthStateChange, getUserProfile } from '@/lib/auth';
+import { onAuthStateChange, getUserProfile, handleRedirectResult } from '@/lib/auth';
 import type { UserProfile } from '@/lib/auth';
 import type { DemoUser } from '@/lib/demo-auth';
 import { demoOnAuthStateChange, demoGetUserProfile } from '@/lib/demo-auth';
@@ -87,6 +87,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setProfile(null);
         }
+        setLoading(false);
+      });
+
+      // Handle redirect result for social authentication
+      handleRedirectResult().then((result) => {
+        if (result) {
+          console.log('Redirect authentication successful:', result.user.email);
+          // The auth state change listener will handle setting user/profile
+        }
+      }).catch((error) => {
+        console.error('Redirect authentication error:', error);
         setLoading(false);
       });
       

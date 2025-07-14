@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label"
 import { BookOpenCheck } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { signUp, signInWithGoogle, signInWithFacebook, signInWithTwitter } from "@/lib/auth"
-import { useAuth } from "@/contexts/AuthContext"
+import { useAuth } from "@/lib/auth-context"
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>

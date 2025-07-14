@@ -19,6 +19,12 @@ service cloud.firestore {
       return request.auth.token.role == 'admin';
     }
 
+    // Users collection - for user profiles
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+      allow read: if isAuthenticated() && (isTeacher() || isAdmin());
+    }
+
     // Students collection - users can only access their own data
     match /students/{studentId} {
       allow read, write: if isAuthenticated() && isOwner(studentId);
