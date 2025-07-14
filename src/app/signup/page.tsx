@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BookOpenCheck } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useAuthToast } from "@/hooks/use-auth-toast"
 import { signUp, signInWithGoogle, signInWithFacebook, signInWithTwitter } from "@/lib/auth"
 import { useAuth } from "@/lib/auth-context"
 
@@ -43,6 +44,7 @@ const TwitterIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function SignupPage() {
     const router = useRouter()
     const { toast } = useToast()
+    const { showAuthError, showAuthSuccess } = useAuthToast()
     const { isDemoMode } = useAuth()
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
@@ -64,17 +66,10 @@ export default function SignupPage() {
 
         try {
             await signUp(formData.email, formData.password, formData.fullName)
-            toast({
-                title: "Sign Up Successful!",
-                description: "Welcome to EdTech AI Hub. You can now access your dashboard.",
-            })
+            showAuthSuccess("Sign Up Successful!", "Welcome to EdTech AI Hub. You can now access your dashboard.")
             router.push("/dashboard")
         } catch (error: any) {
-            toast({
-                title: "Sign Up Failed",
-                description: error.message || "An error occurred during sign up.",
-                variant: "destructive"
-            })
+            showAuthError(error)
         } finally {
             setLoading(false)
         }
@@ -84,17 +79,10 @@ export default function SignupPage() {
         setLoading(true)
         try {
             await signInWithGoogle()
-            toast({
-                title: "Sign Up Successful!",
-                description: "Welcome to EdTech AI Hub. You can now access your dashboard.",
-            })
+            showAuthSuccess("Sign Up Successful!", "Welcome to EdTech AI Hub. You can now access your dashboard.")
             router.push("/dashboard")
         } catch (error: any) {
-            toast({
-                title: "Google Sign Up Failed",
-                description: error.message || "An error occurred during Google sign up.",
-                variant: "destructive"
-            })
+            showAuthError(error)
         } finally {
             setLoading(false)
         }
@@ -104,17 +92,10 @@ export default function SignupPage() {
         setLoading(true)
         try {
             await signInWithFacebook()
-            toast({
-                title: "Sign Up Successful!",
-                description: "Welcome to EdTech AI Hub. You can now access your dashboard.",
-            })
+            showAuthSuccess("Sign Up Successful!", "Welcome to EdTech AI Hub. You can now access your dashboard.")
             router.push("/dashboard")
         } catch (error: any) {
-            toast({
-                title: "Facebook Sign Up Failed",
-                description: error.message || "An error occurred during Facebook sign up.",
-                variant: "destructive"
-            })
+            showAuthError(error)
         } finally {
             setLoading(false)
         }
@@ -124,17 +105,10 @@ export default function SignupPage() {
         setLoading(true)
         try {
             await signInWithTwitter()
-            toast({
-                title: "Sign Up Successful!",
-                description: "Welcome to EdTech AI Hub. You can now access your dashboard.",
-            })
+            showAuthSuccess("Sign Up Successful!", "Welcome to EdTech AI Hub. You can now access your dashboard.")
             router.push("/dashboard")
         } catch (error: any) {
-            toast({
-                title: "Twitter Sign Up Failed",
-                description: error.message || "An error occurred during Twitter sign up.",
-                variant: "destructive"
-            })
+            showAuthError(error)
         } finally {
             setLoading(false)
         }

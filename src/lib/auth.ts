@@ -15,6 +15,7 @@ import {
 import { auth, isDemoMode } from './firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
+import { getAuthErrorMessage, getFirebaseErrorCode } from './auth-error-handler';
 import {
   demoSignUp,
   demoSignIn,
@@ -64,7 +65,18 @@ export const signUp = async (email: string, password: string, fullName: string) 
     return { user, profile: userProfile };
   } catch (error: any) {
     console.error('Error signing up:', error);
-    throw new Error(error.message);
+    
+    const errorCode = getFirebaseErrorCode(error);
+    const authError = getAuthErrorMessage(errorCode);
+    
+    // Create a structured error with user-friendly message
+    const enhancedError = new Error(authError.message);
+    (enhancedError as any).title = authError.title;
+    (enhancedError as any).type = authError.type;
+    (enhancedError as any).action = authError.action;
+    (enhancedError as any).code = errorCode;
+    
+    throw enhancedError;
   }
 };
 
@@ -85,7 +97,18 @@ export const signIn = async (email: string, password: string) => {
     return { user, profile };
   } catch (error: any) {
     console.error('Error signing in:', error);
-    throw new Error(error.message);
+    
+    const errorCode = getFirebaseErrorCode(error);
+    const authError = getAuthErrorMessage(errorCode);
+    
+    // Create a structured error with user-friendly message
+    const enhancedError = new Error(authError.message);
+    (enhancedError as any).title = authError.title;
+    (enhancedError as any).type = authError.type;
+    (enhancedError as any).action = authError.action;
+    (enhancedError as any).code = errorCode;
+    
+    throw enhancedError;
   }
 };
 
@@ -154,17 +177,21 @@ export const signInWithGoogle = async () => {
     return { user, profile };
   } catch (error: any) {
     console.error('Error signing in with Google:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    console.error('Full error object:', JSON.stringify(error, null, 2));
     
-    // Provide specific error messages
-    if (error.code === 'auth/popup-closed-by-user') {
-      throw new Error('Sign in was cancelled. Please try again.');
-    } else if (error.code === 'auth/popup-blocked') {
-      throw new Error('Authentication will continue with a page redirect...');
-    } else if (error.code === 'auth/unauthorized-domain') {
-      throw new Error('This domain is not authorized for Google sign-in. Please contact support.');
-    }
+    const errorCode = getFirebaseErrorCode(error);
+    const authError = getAuthErrorMessage(errorCode);
     
-    throw new Error(error.message || 'Failed to sign in with Google. Please try again.');
+    // Create a structured error with user-friendly message
+    const enhancedError = new Error(authError.message);
+    (enhancedError as any).title = authError.title;
+    (enhancedError as any).type = authError.type;
+    (enhancedError as any).action = authError.action;
+    (enhancedError as any).code = errorCode;
+    
+    throw enhancedError;
   }
 };
 

@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BookOpenCheck, Twitter } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useAuthToast } from "@/hooks/use-auth-toast"
 import { signIn, signInWithGoogle, signInWithFacebook, signInWithTwitter } from "@/lib/auth"
 import { useAuth } from "@/lib/auth-context"
 
@@ -42,6 +43,7 @@ const TwitterIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { showAuthError, showAuthSuccess } = useAuthToast()
   const { isDemoMode } = useAuth()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -62,17 +64,10 @@ export default function LoginPage() {
 
     try {
       await signIn(formData.email, formData.password)
-      toast({
-        title: "Login Successful!",
-        description: "Welcome back to EdTech AI Hub.",
-      })
+      showAuthSuccess("Login Successful!", "Welcome back to EdTech AI Hub.")
       router.push("/dashboard")
     } catch (error: any) {
-      toast({
-        title: "Login Failed",
-        description: error.message || "Invalid email or password.",
-        variant: "destructive"
-      })
+      showAuthError(error)
     } finally {
       setLoading(false)
     }
@@ -95,12 +90,7 @@ export default function LoginPage() {
       // If result is null, it means redirect was used and page is redirecting
     } catch (error: any) {
       console.error('Google login error:', error)
-      
-      toast({
-        title: "Google Login Failed",
-        description: error.message || "An error occurred during Google login.",
-        variant: "destructive"
-      })
+      showAuthError(error)
     } finally {
       setLoading(false)
     }
@@ -110,17 +100,10 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await signInWithFacebook()
-      toast({
-        title: "Login Successful!",
-        description: "Welcome back to EdTech AI Hub.",
-      })
+      showAuthSuccess("Login Successful!", "Welcome back to EdTech AI Hub.")
       router.push("/dashboard")
     } catch (error: any) {
-      toast({
-        title: "Facebook Login Failed",
-        description: error.message || "An error occurred during Facebook login.",
-        variant: "destructive"
-      })
+      showAuthError(error)
     } finally {
       setLoading(false)
     }
@@ -130,17 +113,10 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await signInWithTwitter()
-      toast({
-        title: "Login Successful!",
-        description: "Welcome back to EdTech AI Hub.",
-      })
+      showAuthSuccess("Login Successful!", "Welcome back to EdTech AI Hub.")
       router.push("/dashboard")
     } catch (error: any) {
-      toast({
-        title: "Twitter Login Failed",
-        description: error.message || "An error occurred during Twitter login.",
-        variant: "destructive"
-      })
+      showAuthError(error)
     } finally {
       setLoading(false)
     }
