@@ -18,6 +18,9 @@ const demoUsers: Array<{ email: string; password: string; profile: UserProfile }
       email: 'student@demo.com',
       displayName: 'Demo Student',
       role: 'student',
+      curriculum: undefined,
+      curriculumSelected: false,
+      gradeLevel: undefined,
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -30,6 +33,9 @@ const demoUsers: Array<{ email: string; password: string; profile: UserProfile }
       email: 'teacher@demo.com',
       displayName: 'Demo Teacher',
       role: 'teacher',
+      curriculum: 'CBE',
+      curriculumSelected: true,
+      gradeLevel: 'Grade 6',
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -54,6 +60,9 @@ export const demoSignUp = async (email: string, password: string, fullName: stri
     email: newUser.email,
     displayName: newUser.displayName,
     role: 'student',
+    curriculum: undefined,
+    curriculumSelected: false,
+    gradeLevel: undefined,
     createdAt: new Date(),
     updatedAt: new Date()
   };

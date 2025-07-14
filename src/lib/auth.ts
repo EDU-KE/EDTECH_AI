@@ -31,9 +31,23 @@ export interface UserProfile {
   email: string;
   displayName: string;
   role: 'student' | 'teacher' | 'admin';
+  curriculum?: 'CBE' | '8-4-4' | 'IGCSE';
+  curriculumSelected: boolean;
+  gradeLevel?: string;
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Helper function to remove undefined values from objects (Firestore doesn't accept undefined)
+const cleanObject = <T extends Record<string, any>>(obj: T): Partial<T> => {
+  const cleaned: Partial<T> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      cleaned[key as keyof T] = value;
+    }
+  }
+  return cleaned;
+};
 
 // Sign up with email and password
 export const signUp = async (email: string, password: string, fullName: string) => {
@@ -56,6 +70,7 @@ export const signUp = async (email: string, password: string, fullName: string) 
       email: user.email!,
       displayName: fullName,
       role: 'student', // Default role
+      curriculumSelected: false,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -180,6 +195,7 @@ export const signInWithGoogle = async () => {
         email: user.email!,
         displayName: user.displayName || 'Google User',
         role: 'student',
+        curriculumSelected: false,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -193,8 +209,36 @@ export const signInWithGoogle = async () => {
     console.error('Error signing in with Google:', error);
     console.error('Error code:', error.code);
     console.error('Error message:', error.message);
-    console.error('Full error object:', JSON.stringify(error, null, 2));
     
+    // Handle specific Google OAuth errors
+    if (error.code === 'auth/unauthorized-domain') {
+      const currentDomain = window.location.hostname;
+      const enhancedError = new Error(
+        `🔧 Domain Authorization Required\n\n` +
+        `The domain '${currentDomain}' is not authorized for Google sign-in.\n\n` +
+        `To fix this:\n` +
+        `1. Go to Firebase Console → Authentication → Settings → Authorized domains\n` +
+        `2. Add '${currentDomain}' to the authorized domains list\n` +
+        `3. For local development, make sure 'localhost' is in the list\n` +
+        `4. For Codespaces, add your codespace domain\n\n` +
+        `If you're in demo mode, you can use email/password authentication instead.`
+      );
+      (enhancedError as any).title = 'Domain Not Authorized';
+      (enhancedError as any).type = 'configuration';
+      (enhancedError as any).action = 'Configure Firebase authorized domains';
+      (enhancedError as any).code = 'auth/unauthorized-domain';
+      throw enhancedError;
+    }
+    
+    if (error.code === 'auth/popup-closed-by-user') {
+      throw new Error('Sign in was cancelled. Please try again.');
+    }
+    
+    if (error.code === 'auth/popup-blocked') {
+      throw new Error('Popup was blocked by your browser. Please allow popups and try again.');
+    }
+    
+    // Handle other errors using the existing error handler
     const errorCode = getFirebaseErrorCode(error);
     const authError = getAuthErrorMessage(errorCode);
     
@@ -224,6 +268,7 @@ export const handleRedirectResult = async () => {
           email: result.user.email!,
           displayName: result.user.displayName || 'User',
           role: 'student',
+          curriculumSelected: false,
           createdAt: new Date(),
           updatedAt: new Date()
         };
@@ -262,6 +307,7 @@ export const signInWithFacebook = async () => {
         email: user.email!,
         displayName: user.displayName!,
         role: 'student',
+        curriculumSelected: false,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -298,6 +344,7 @@ export const signInWithTwitter = async () => {
         email: user.email || `${user.uid}@twitter.local`, // Twitter might not provide email
         displayName: user.displayName || 'Twitter User',
         role: 'student',
+        curriculumSelected: false,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -394,4 +441,73 @@ export const deleteUserAccount = async () => {
     
     throw new Error(error.message || 'Failed to delete account. Please try again.');
   }
+};
+
+// Update user curriculum
+export const updateUserCurriculum = async (curriculum: 'CBE' | '8-4-4' | 'IGCSE', gradeLevel?: string) => {
+  if (isDemoMode) {
+    console.log('🚀 Demo Mode: Curriculum update simulation');
+    return;
+  }
+  
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('No user is currently signed in');
+    }
+
+    const updateData: Partial<UserProfile> = {
+      curriculum,
+      curriculumSelected: true,
+      updatedAt: new Date()
+    };
+
+    if (gradeLevel) {
+      updateData.gradeLevel = gradeLevel;
+    }
+
+    // Clean undefined values before saving to Firestore
+    const cleanedData = cleanObject(updateData);
+    await setDoc(doc(db, 'users', user.uid), cleanedData, { merge: true });
+    
+    console.log('User curriculum updated successfully');
+  } catch (error: any) {
+    console.error('Error updating user curriculum:', error);
+    throw new Error(error.message || 'Failed to update curriculum. Please try again.');
+  }
+};
+
+// Check if user needs curriculum selection
+export const needsCurriculumSelection = (profile: UserProfile | null): boolean => {
+  if (!profile) return false;
+  return !profile.curriculumSelected || !profile.curriculum;
+};
+
+// Get curriculum info
+export const getCurriculumInfo = (curriculum: 'CBE' | '8-4-4' | 'IGCSE') => {
+  const curriculumData = {
+    'CBE': {
+      name: 'Competency-Based Education (CBE)',
+      description: 'Modern competency-based curriculum focusing on practical skills and real-world applications.',
+      grades: ['Pre-Primary 1', 'Pre-Primary 2', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Junior Secondary 1', 'Junior Secondary 2', 'Junior Secondary 3'],
+      subjects: ['English', 'Kiswahili', 'Mathematics', 'Science & Technology', 'Social Studies', 'Creative Arts', 'Physical Education', 'Life Skills'],
+      icon: '🎯'
+    },
+    '8-4-4': {
+      name: '8-4-4 System',
+      description: 'Traditional Kenyan education system with 8 years primary, 4 years secondary, and 4 years university.',
+      grades: ['Standard 1', 'Standard 2', 'Standard 3', 'Standard 4', 'Standard 5', 'Standard 6', 'Standard 7', 'Standard 8', 'Form 1', 'Form 2', 'Form 3', 'Form 4'],
+      subjects: ['English', 'Kiswahili', 'Mathematics', 'Science', 'Social Studies', 'Christian Religious Education', 'Art & Craft', 'Music', 'Physical Education'],
+      icon: '📚'
+    },
+    'IGCSE': {
+      name: 'International General Certificate of Secondary Education',
+      description: 'Internationally recognized qualification for students aged 14-16, preparing for advanced studies.',
+      grades: ['Year 9', 'Year 10', 'Year 11', 'AS Level', 'A Level'],
+      subjects: ['English Language', 'English Literature', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography', 'Economics', 'Business Studies', 'Art & Design'],
+      icon: '🌍'
+    }
+  };
+  
+  return curriculumData[curriculum];
 };
