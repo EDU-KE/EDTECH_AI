@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,10 +17,21 @@ import { useAuth } from "@/contexts/AuthContext"
 export default function HomePage() {
   const { user, loading, isDemoMode } = useAuth()
   const router = useRouter()
+  const [forceShowPage, setForceShowPage] = useState(false)
 
   // Force demo mode detection based on environment variable
   const isDemo = !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 
                  process.env.NEXT_PUBLIC_FIREBASE_API_KEY === "your_api_key_here";
+
+  // EMERGENCY: Force page to show after 3 seconds no matter what
+  useEffect(() => {
+    const emergencyOverride = setTimeout(() => {
+      console.log('EMERGENCY: Forcing page to show after 3 seconds');
+      setForceShowPage(true);
+    }, 3000);
+
+    return () => clearTimeout(emergencyOverride);
+  }, []);
 
   useEffect(() => {
     // Redirect to dashboard if user is already authenticated
@@ -29,11 +40,12 @@ export default function HomePage() {
     }
   }, [user, loading, router])
 
-  // In demo mode, always show the landing page after 1 second max
-  const shouldShowLoading = loading && !isDemo;
+  // Show loading while checking authentication - BUT force show page if emergency override
+  const shouldShowLoading = loading && !forceShowPage;
 
   console.log('HomePage render:', { 
     loading, 
+    forceShowPage,
     isDemoMode, 
     isDemo, 
     shouldShowLoading, 
@@ -41,13 +53,16 @@ export default function HomePage() {
     envKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY
   });
 
-  // Show loading while checking authentication (but not in demo mode)
+  // Show loading while checking authentication
   if (shouldShowLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center">
-          <BookOpenCheck className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
-          <p>Loading...</p>
+        <div className="text-center space-y-4">
+          <BookOpenCheck className="h-16 w-16 text-primary mx-auto animate-pulse" />
+          <div className="space-y-2">
+            <p className="text-lg font-medium text-foreground">Loading...</p>
+            <p className="text-sm text-muted-foreground">Please wait while we prepare your experience</p>
+          </div>
         </div>
       </div>
     )
