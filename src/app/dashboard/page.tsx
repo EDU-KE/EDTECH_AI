@@ -9,18 +9,25 @@ import { SubjectCard } from "@/components/subject-card";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { dashboardCards, subjects, type Subject } from "@/lib/mock-data";
-import { BookOpenCheck, BookPlus, Loader2, Sparkles } from "lucide-react";
+import { BookPlus, Loader2, Sparkles, AlertCircle } from "lucide-react";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { getSubjectAnalysis } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
+import { getUserProfile, needsCurriculumSelection, type UserProfile } from "@/lib/auth";
+import { useCurriculum } from "@/components/CurriculumContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const { showModal } = useCurriculum();
   const [enrolledSubjects, setEnrolledSubjects] = useState<Subject[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isAnalysisPending, startAnalysisTransition] = useTransition();
-  const [showWelcomeCard, setShowWelcomeCard] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [showCurriculumReminder, setShowCurriculumReminder] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -30,21 +37,27 @@ export default function Dashboard() {
       const userSubjects = subjects.filter(subject => subjectIds.includes(subject.id));
       setEnrolledSubjects(userSubjects);
     }
-    
-    // Show welcome card on first visit to dashboard
-    const hasSeenWelcome = sessionStorage.getItem("hasSeenWelcome");
-    if (!hasSeenWelcome) {
-        setShowWelcomeCard(true);
-        sessionStorage.setItem("hasSeenWelcome", "true");
 
-        const timer = setTimeout(() => {
-            setShowWelcomeCard(false);
-        }, 3000); // Auto-close after 3 seconds
+    // Check if user needs curriculum selection
+    const checkCurriculumStatus = async () => {
+      if (!user?.uid) return;
+      
+      try {
+        const profile = await getUserProfile(user.uid);
+        setUserProfile(profile);
+        
+        if (needsCurriculumSelection(profile)) {
+          setShowCurriculumReminder(true);
+        }
+      } catch (error) {
+        console.error('Error checking curriculum status:', error);
+      }
+    };
 
-        return () => clearTimeout(timer);
+    if (user) {
+      checkCurriculumStatus();
     }
-
-  }, []);
+  }, [user]);
 
   const handleAnalyzeSubject = useCallback((subject: Subject) => {
     setSelectedSubject(subject);
@@ -64,24 +77,37 @@ export default function Dashboard() {
 
   return (
     <AppShell title="Dashboard">
-        {showWelcomeCard && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 animate-in fade-in-0">
-                <Card className="w-full max-w-md m-4 shadow-2xl rounded-2xl animate-in fade-in-0 zoom-in-95">
-                    <CardHeader className="text-center p-8">
-                        <div className="flex justify-center items-center mb-4">
-                            <BookOpenCheck className="h-14 w-14 text-primary" />
+        {showCurriculumReminder && (
+            <Alert className="mb-6 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
+                <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                <AlertDescription className="text-orange-800 dark:text-orange-200">
+                    <div className="flex items-center justify-between">
+                        <span>Complete your curriculum selection to get personalized learning content.</span>
+                        <div className="flex gap-2 ml-4">
+                            <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => setShowCurriculumReminder(false)}
+                                className="border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-700 dark:text-orange-300 dark:hover:bg-orange-900"
+                            >
+                                Remind Later
+                            </Button>
+                            <Button 
+                                size="sm"
+                                onClick={() => {
+                                    setShowCurriculumReminder(false);
+                                    showModal();
+                                }}
+                                className="bg-orange-600 hover:bg-orange-700 text-white"
+                            >
+                                Complete Setup
+                            </Button>
                         </div>
-                        <CardTitle className="text-2xl">Welcome to the EdTech AI Hub!</CardTitle>
-                        <CardDescription className="pt-2">
-                            This is an AI-powered platform to enhance your learning experience.
-                            <br />
-                            <span className="text-xs text-muted-foreground mt-2 block">Developed by Kariuki James Kariuki</span>
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
-            </div>
+                    </div>
+                </AlertDescription>
+            </Alert>
         )}
-
+        
         <div className="space-y-4 sm:space-y-6">
             <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 {dashboardCards.map((card) => (

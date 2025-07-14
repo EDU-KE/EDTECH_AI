@@ -6,6 +6,7 @@ import { Inter, Source_Code_Pro } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { AuthProvider } from '@/lib/auth-context';
 import { CurriculumWrapper } from '@/components/CurriculumWrapper';
+import { CurriculumProvider } from '@/components/CurriculumContext';
 import { FirebaseErrorBoundary } from '@/components/FirebaseErrorBoundary';
 
 const fontBody = Inter({
@@ -35,9 +36,11 @@ export default function RootLayout({
       <body className={cn("antialiased", fontBody.variable, fontCode.variable)}>
         <FirebaseErrorBoundary>
           <AuthProvider>
-            <CurriculumWrapper>
-              {children}
-            </CurriculumWrapper>
+            <CurriculumProvider>
+              <CurriculumWrapper>
+                {children}
+              </CurriculumWrapper>
+            </CurriculumProvider>
             <Toaster />
             <SonnerToaster richColors position="top-right" />
           </AuthProvider>
