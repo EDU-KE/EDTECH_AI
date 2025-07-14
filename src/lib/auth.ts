@@ -127,7 +127,7 @@ export const signOut = async () => {
   }
 };
 
-// Google Sign In with automatic popup blocking fallback
+// Google Sign In with account selection and default Google page
 export const signInWithGoogle = async () => {
   if (isDemoMode) {
     console.log('🚀 Demo Mode: Social login not available in demo mode');
@@ -136,9 +136,16 @@ export const signInWithGoogle = async () => {
   
   try {
     const provider = new GoogleAuthProvider();
+    
     // Add additional scopes if needed
     provider.addScope('profile');
     provider.addScope('email');
+    
+    // Configure provider to use default Google sign-in page with account selection
+    provider.setCustomParameters({
+      prompt: 'select_account', // Forces account selection every time
+      // hd: 'yourdomain.com', // Uncomment and set domain if you want to restrict to specific domain
+    });
     
     let user: User;
     
@@ -150,7 +157,14 @@ export const signInWithGoogle = async () => {
       if (popupError.code === 'auth/popup-blocked') {
         // Popup was blocked, fall back to redirect
         console.log('Popup blocked, falling back to redirect...');
-        await signInWithRedirect(auth, provider);
+        // Configure provider for redirect with same settings
+        const redirectProvider = new GoogleAuthProvider();
+        redirectProvider.addScope('profile');
+        redirectProvider.addScope('email');
+        redirectProvider.setCustomParameters({
+          prompt: 'select_account',
+        });
+        await signInWithRedirect(auth, redirectProvider);
         return null; // The page will redirect
       }
       throw popupError; // Re-throw other errors
