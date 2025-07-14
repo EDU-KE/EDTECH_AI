@@ -5,8 +5,8 @@ import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CurriculumSelectionModal } from '@/components/CurriculumSelectionModal';
-import { getUserProfile, getCurriculumInfo, type UserProfile } from '@/lib/auth';
+import { useCurriculum } from '@/components/CurriculumContext';
+import { getUserProfile, getCurriculumInfo, needsCurriculumSelection, type UserProfile } from '@/lib/auth';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { Settings, BookOpen, User } from 'lucide-react';
@@ -14,8 +14,8 @@ import Link from 'next/link';
 
 export default function CurriculumTestPage() {
   const { user, signIn, signOut } = useAuth();
+  const { showModal, isModalOpen } = useCurriculum();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const loadUserProfile = async () => {
@@ -56,7 +56,7 @@ export default function CurriculumTestPage() {
   };
 
   const handleModalComplete = () => {
-    setShowModal(false);
+    // Modal will be closed by the CurriculumWrapper context
     loadUserProfile(); // Refresh profile after curriculum selection
   };
 
@@ -150,7 +150,7 @@ export default function CurriculumTestPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-4">
-              <Button onClick={() => setShowModal(true)}>
+              <Button onClick={() => showModal()}>
                 Open Curriculum Selection
               </Button>
               <Button asChild variant="outline">
@@ -168,6 +168,33 @@ export default function CurriculumTestPage() {
                   Firebase Debug Console
                 </Link>
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Modal Status */}
+      {user && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Modal Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Current Status:</span>
+                <Badge variant={isModalOpen ? "default" : "secondary"}>
+                  {isModalOpen ? "Open" : "Closed"}
+                </Badge>
+              </div>
+              {userProfile && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Needs Selection:</span>
+                  <Badge variant={needsCurriculumSelection(userProfile) ? "destructive" : "secondary"}>
+                    {needsCurriculumSelection(userProfile) ? "Yes" : "No"}
+                  </Badge>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -205,13 +232,6 @@ export default function CurriculumTestPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Curriculum Selection Modal */}
-      <CurriculumSelectionModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onComplete={handleModalComplete}
-      />
     </div>
   );
 }
