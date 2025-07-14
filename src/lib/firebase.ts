@@ -1,12 +1,11 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { 
   getFirestore, 
-  connectFirestoreEmulator,
   enableIndexedDbPersistence,
   CACHE_SIZE_UNLIMITED,
   initializeFirestore
 } from 'firebase/firestore';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 
 // Check if we're in demo mode (no Firebase config provided)
 // Use a function to check this dynamically to avoid SSR/client hydration issues
@@ -53,18 +52,17 @@ const db = initializeFirestore(app, {
 // Initialize Auth
 const auth = getAuth(app);
 
-// Connect to emulators in development
-if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && !isDemoMode) {
-  try {
-    // Connect Firestore emulator
-    connectFirestoreEmulator(db, 'localhost', 8080);
-    
-    // Connect Auth emulator
-    connectAuthEmulator(auth, 'http://localhost:9099');
-  } catch (error) {
-    console.log('Emulator connection error (might already be connected):', error);
-  }
-}
+// NOTE: Emulator connections removed to use real Firebase
+// If you want to use emulators again, uncomment the section below:
+//
+// if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && !isDemoMode) {
+//   try {
+//     connectFirestoreEmulator(db, 'localhost', 8080);
+//     connectAuthEmulator(auth, 'http://localhost:9099');
+//   } catch (error) {
+//     console.log('Emulator connection error (might already be connected):', error);
+//   }
+// }
 
 // Enable offline persistence for better performance
 if (typeof window !== 'undefined' && !isDemoMode) {
@@ -82,7 +80,9 @@ if (typeof window !== 'undefined') {
   console.log('🔥 Firebase Configuration:', {
     isDemoMode,
     projectId: firebaseConfig.projectId,
-    authDomain: firebaseConfig.authDomain
+    authDomain: firebaseConfig.authDomain,
+    usingRealFirebase: !isDemoMode,
+    emulatorsDisabled: true
   });
 }
 

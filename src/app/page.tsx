@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { BookOpenCheck, GraduationCap, Brain, Users } from "lucide-react"
-import { useAuth } from "@/contexts/AuthContext"
+import { useAuth } from "@/lib/auth-context"
 
 export default function HomePage() {
   const { user, loading, isDemoMode } = useAuth()

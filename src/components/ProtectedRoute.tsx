@@ -2,7 +2,7 @@
 
 import { useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/lib/auth-context';
 import { BookOpenCheck } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { user, profile, loading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -22,13 +22,13 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
         return;
       }
 
-      if (requiredRole && profile?.role !== requiredRole) {
+      if (requiredRole && user?.role !== requiredRole) {
         // User doesn't have the required role, redirect to dashboard
         router.push('/dashboard');
         return;
       }
     }
-  }, [user, profile, loading, requiredRole, router]);
+  }, [user, loading, requiredRole, router]);
 
   // Show loading while checking authentication
   if (loading) {
@@ -48,7 +48,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   }
 
   // Don't render children if user doesn't have required role
-  if (requiredRole && profile?.role !== requiredRole) {
+  if (requiredRole && user?.role !== requiredRole) {
     return null;
   }
 

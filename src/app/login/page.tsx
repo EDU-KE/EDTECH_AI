@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label"
 import { BookOpenCheck, Twitter } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { signIn, signInWithGoogle, signInWithFacebook, signInWithTwitter } from "@/lib/auth"
-import { useAuth } from "@/contexts/AuthContext"
+import { useAuth } from "@/lib/auth-context"
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -80,14 +80,22 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setLoading(true)
+    
     try {
-      await signInWithGoogle()
-      toast({
-        title: "Login Successful!",
-        description: "Welcome back to EdTech AI Hub.",
-      })
-      router.push("/dashboard")
+      const result = await signInWithGoogle()
+      
+      // If using redirect, the page will redirect and we won't reach this point
+      if (result) {
+        toast({
+          title: "Login Successful!",
+          description: "Welcome back to EdTech AI Hub.",
+        })
+        router.push("/dashboard")
+      }
+      // If result is null, it means redirect was used and page is redirecting
     } catch (error: any) {
+      console.error('Google login error:', error)
+      
       toast({
         title: "Google Login Failed",
         description: error.message || "An error occurred during Google login.",
@@ -210,6 +218,12 @@ export default function LoginPage() {
             </div>
             
             <div className="grid gap-3">
+                {!isDemoMode && (
+                  <div className="text-xs text-muted-foreground text-center mb-2">
+                    Google sign-in will automatically adapt if popups are blocked
+                  </div>
+                )}
+                
                 <Button 
                   variant="outline" 
                   onClick={handleGoogleLogin} 

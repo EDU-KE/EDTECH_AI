@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { useAuth } from "@/contexts/AuthContext"
+import { useAuth } from "@/lib/auth-context"
 import { deleteUserAccount } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { 
@@ -42,7 +42,7 @@ interface UserSettingsDialogProps {
 }
 
 export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogProps) {
-  const { user, profile, isDemoMode } = useAuth()
+  const { user, isDemoMode } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -70,7 +70,7 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
     }
   }
 
-  if (!user || !profile) return null
+  if (!user) return null
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -114,7 +114,7 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
                     </label>
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <span className="text-sm truncate">{profile.displayName}</span>
+                      <span className="text-sm truncate">{user.displayName}</span>
                     </div>
                   </div>
                   
@@ -124,7 +124,7 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
                     </label>
                     <div className="flex items-center gap-2 min-w-0">
                       <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <span className="text-sm truncate">{profile.email}</span>
+                      <span className="text-sm truncate">{user.email}</span>
                     </div>
                   </div>
                   
@@ -134,8 +134,8 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
                     </label>
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-muted-foreground" />
-                      <Badge variant={profile.role === 'teacher' ? 'default' : 'secondary'}>
-                        {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
+                      <Badge variant={user.role === 'teacher' ? 'default' : 'secondary'}>
+                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                       </Badge>
                     </div>
                   </div>
@@ -146,7 +146,7 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
                     </label>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{formatDate(profile.createdAt)}</span>
+                      <span className="text-sm">{user.createdAt ? formatDate(user.createdAt) : 'N/A'}</span>
                     </div>
                   </div>
                 </div>
