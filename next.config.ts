@@ -29,6 +29,33 @@ const nextConfig: NextConfig = {
         tls: false,
       };
     }
+    
+    // Handle handlebars module issue
+    config.module.rules.push({
+      test: /\.js$/,
+      include: /node_modules\/handlebars/,
+      use: {
+        loader: 'babel-loader',
+        options: {
+          presets: ['@babel/preset-env'],
+          plugins: [
+            ['@babel/plugin-transform-runtime', {
+              "regenerator": true
+            }]
+          ]
+        }
+      }
+    });
+    
+    // Ignore handlebars require.extensions warnings
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      {
+        module: /handlebars/,
+        message: /require\.extensions/,
+      },
+    ];
+    
     return config;
   },
   // Allow cross-origin requests from codespace environment

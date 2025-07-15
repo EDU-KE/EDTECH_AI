@@ -38,10 +38,7 @@ const prompt = ai.definePrompt({
   name: 'generateRecommendationsPrompt',
   input: {schema: GenerateRecommendationsInputSchema},
   model: deepseekChat,
-  model: deepseekChat,
   output: {schema: GenerateRecommendationsOutputSchema},
-  model: deepseekChat,
-  model: deepseekChat,
   prompt: `You are an expert curriculum designer and AI assistant for students.
 
   A student needs recommendations for learning resources on a specific topic. Based on the subject and topic provided, generate a list of 3-5 high-quality, diverse, and helpful learning resources.
