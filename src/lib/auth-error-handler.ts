@@ -86,10 +86,18 @@ export const getAuthErrorMessage = (errorCode: string): AuthError => {
 
     case 'auth/internal-error':
       return {
-        title: '⚙️ Configuration Error',
-        message: 'Google sign-in is not properly configured. Please try again later or contact support.',
+        title: '⚙️ Google OAuth Not Configured',
+        message: 'Google sign-in is not properly configured in Firebase. Please enable Google authentication in the Firebase Console.',
         type: 'error',
-        action: 'Try again later'
+        action: 'Configure Google OAuth in Firebase Console'
+      };
+
+    case 'auth/oauth-not-configured':
+      return {
+        title: '⚙️ Google OAuth Setup Required',
+        message: 'Google sign-in needs to be enabled in Firebase. Please configure OAuth 2.0 in the Firebase Console.',
+        type: 'error',
+        action: 'Enable Google authentication in Firebase'
       };
 
     // Account Creation Errors

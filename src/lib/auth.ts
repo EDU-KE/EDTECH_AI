@@ -6,9 +6,6 @@ import {
   User,
   updateProfile,
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  GoogleAuthProvider,
   FacebookAuthProvider,
   TwitterAuthProvider
 } from 'firebase/auth';
@@ -142,7 +139,7 @@ export const signOut = async () => {
   }
 };
 
-// Google Sign In with account selection and default Google page
+// Google Sign In - Use the robust Google auth service
 export const signInWithGoogle = async () => {
   if (isDemoMode) {
     console.log('🚀 Demo Mode: Social login not available in demo mode');
@@ -150,135 +147,56 @@ export const signInWithGoogle = async () => {
   }
   
   try {
-    const provider = new GoogleAuthProvider();
+    // Use the robust Google auth service instead of duplicating logic
+    const { signInWithGoogle: googleSignIn } = await import('./google-auth');
+    const result = await googleSignIn();
     
-    // Add additional scopes if needed
-    provider.addScope('profile');
-    provider.addScope('email');
+    // Convert the result to the expected format for this auth.ts file
+    const profile: UserProfile = {
+      uid: result.user.uid,
+      email: result.user.email,
+      displayName: result.user.displayName,
+      role: result.profile.role,
+      curriculumSelected: false,
+      createdAt: result.profile.createdAt,
+      updatedAt: new Date()
+    };
     
-    // Configure provider to use default Google sign-in page with account selection
-    provider.setCustomParameters({
-      prompt: 'select_account', // Forces account selection every time
-      // hd: 'yourdomain.com', // Uncomment and set domain if you want to restrict to specific domain
-    });
-    
-    let user: User;
-    
-    // Try popup first
-    try {
-      const result = await signInWithPopup(auth, provider);
-      user = result.user;
-    } catch (popupError: any) {
-      if (popupError.code === 'auth/popup-blocked') {
-        // Popup was blocked, fall back to redirect
-        console.log('Popup blocked, falling back to redirect...');
-        // Configure provider for redirect with same settings
-        const redirectProvider = new GoogleAuthProvider();
-        redirectProvider.addScope('profile');
-        redirectProvider.addScope('email');
-        redirectProvider.setCustomParameters({
-          prompt: 'select_account',
-        });
-        await signInWithRedirect(auth, redirectProvider);
-        return null; // The page will redirect
-      }
-      throw popupError; // Re-throw other errors
-    }
-    
-    // Check if user profile exists, if not create one
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    let profile: UserProfile;
-
-    if (!userDoc.exists()) {
-      profile = {
-        uid: user.uid,
-        email: user.email!,
-        displayName: user.displayName || 'Google User',
-        role: 'student',
-        curriculumSelected: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      await setDoc(doc(db, 'users', user.uid), profile);
-    } else {
-      profile = userDoc.data() as UserProfile;
-    }
-
-    return { user, profile };
+    return { user: result.user, profile };
   } catch (error: any) {
-    console.error('Error signing in with Google:', error);
-    console.error('Error code:', error.code);
-    console.error('Error message:', error.message);
+    console.error('🚨 Google Sign-in Error:', error);
     
-    // Handle specific Google OAuth errors
-    if (error.code === 'auth/unauthorized-domain') {
-      const currentDomain = window.location.hostname;
-      const enhancedError = new Error(
-        `🔧 Domain Authorization Required\n\n` +
-        `The domain '${currentDomain}' is not authorized for Google sign-in.\n\n` +
-        `To fix this:\n` +
-        `1. Go to Firebase Console → Authentication → Settings → Authorized domains\n` +
-        `2. Add '${currentDomain}' to the authorized domains list\n` +
-        `3. For local development, make sure 'localhost' is in the list\n` +
-        `4. For Codespaces, add your codespace domain\n\n` +
-        `If you're in demo mode, you can use email/password authentication instead.`
-      );
-      (enhancedError as any).title = 'Domain Not Authorized';
-      (enhancedError as any).type = 'configuration';
-      (enhancedError as any).action = 'Configure Firebase authorized domains';
-      (enhancedError as any).code = 'auth/unauthorized-domain';
-      throw enhancedError;
-    }
-    
-    if (error.code === 'auth/popup-closed-by-user') {
-      throw new Error('Sign in was cancelled. Please try again.');
-    }
-    
-    if (error.code === 'auth/popup-blocked') {
-      throw new Error('Popup was blocked by your browser. Please allow popups and try again.');
-    }
-    
-    // Handle other errors using the existing error handler
-    const errorCode = getFirebaseErrorCode(error);
-    const authError = getAuthErrorMessage(errorCode);
-    
-    // Create a structured error with user-friendly message
-    const enhancedError = new Error(authError.message);
-    (enhancedError as any).title = authError.title;
-    (enhancedError as any).type = authError.type;
-    (enhancedError as any).action = authError.action;
-    (enhancedError as any).code = errorCode;
-    
-    throw enhancedError;
+    // Re-throw the error as-is since the google-auth service already handles detailed error messages
+    throw error;
   }
 };
 
 // Handle redirect result (important for redirect-based authentication)
 export const handleRedirectResult = async () => {
+  if (isDemoMode) {
+    return null;
+  }
+  
   try {
-    const result = await getRedirectResult(auth);
-    if (result && result.user) {
-      // Check if user profile exists, if not create one
-      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
-      let profile: UserProfile;
-
-      if (!userDoc.exists()) {
-        profile = {
-          uid: result.user.uid,
-          email: result.user.email!,
-          displayName: result.user.displayName || 'User',
-          role: 'student',
-          curriculumSelected: false,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-        await setDoc(doc(db, 'users', result.user.uid), profile);
-      } else {
-        profile = userDoc.data() as UserProfile;
-      }
-
+    // Use the robust Google auth service for redirect handling
+    const { handleGoogleRedirect } = await import('./google-auth');
+    const result = await handleGoogleRedirect();
+    
+    if (result) {
+      // Convert the result to the expected format for this auth.ts file
+      const profile: UserProfile = {
+        uid: result.user.uid,
+        email: result.user.email,
+        displayName: result.user.displayName,
+        role: result.profile.role,
+        curriculumSelected: false,
+        createdAt: result.profile.createdAt,
+        updatedAt: new Date()
+      };
+      
       return { user: result.user, profile };
     }
+    
     return null;
   } catch (error: any) {
     console.error('Error handling redirect result:', error);

@@ -28,6 +28,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<User>;
+  signInWithGoogle: () => Promise<User>;
   signUp: (email: string, password: string, displayName: string, role: 'student' | 'teacher') => Promise<User>;
   signOut: () => Promise<void>;
   updateUserProfile: (updates: Partial<User>) => Promise<void>;
@@ -38,6 +39,31 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Helper function to set authentication cookies for middleware
+const setAuthCookies = (user: User) => {
+  if (typeof document !== 'undefined') {
+    const sessionExpiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
+    
+    // Set cookies that middleware expects (without domain restrictions for localhost)
+    document.cookie = `auth-token=firebase-token-${user.uid}; path=/; max-age=86400; samesite=lax`;
+    document.cookie = `user-role=${user.role}; path=/; max-age=86400; samesite=lax`;
+    document.cookie = `session-expiry=${sessionExpiry}; path=/; max-age=86400; samesite=lax`;
+    
+    console.log('🍪 Authentication cookies set for user:', user.email);
+  }
+};
+
+// Helper function to clear authentication cookies
+const clearAuthCookies = () => {
+  if (typeof document !== 'undefined') {
+    document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'user-role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'session-expiry=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    
+    console.log('🍪 Authentication cookies cleared');
+  }
+};
 
 // Demo users for testing
 const demoUsers = [
@@ -123,9 +149,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Handle demo mode authentication
-  const handleDemoAuth = async (email: string): Promise<User | null> => {
+  const handleDemoAuth = async (email: string, password: string): Promise<User | null> => {
     const demoUser = demoUsers.find(u => u.email === email);
     if (!demoUser) return null;
+    
+    // Validate demo password
+    if (password !== 'password123') {
+      throw new Error('Invalid demo credentials. Use password123 for demo accounts.');
+    }
 
     // Create session for demo user
     const clientInfo = getClientInfo();
@@ -153,10 +184,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       if (isDemoMode) {
         // Demo mode authentication
-        const demoUser = await handleDemoAuth(email);
+        const demoUser = await handleDemoAuth(email, password);
         if (!demoUser) {
           throw new Error('Invalid demo credentials. Use student@demo.com, teacher@demo.com, or admin@demo.com');
         }
+        
+        // Set authentication cookies for middleware (demo mode)
+        setAuthCookies(demoUser);
         
         setUser(demoUser);
         setLoading(false);
@@ -174,6 +208,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await setDoc(doc(db, 'users', user.uid), {
           lastLogin: new Date(),
         }, { merge: true });
+
+        // Set authentication cookies for middleware
+        setAuthCookies(user);
 
         setUser(user);
         setLoading(false);
@@ -215,6 +252,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('Failed to create user');
       }
 
+      // Set authentication cookies for middleware
+      setAuthCookies(user);
+
+      setUser(user);
+      setLoading(false);
+      return user;
+    } catch (error) {
+      setLoading(false);
+      throw error;
+    }
+  };
+
+  // Sign in with Google
+  const signInWithGoogle = async (): Promise<User> => {
+    setLoading(true);
+    
+    try {
+      if (isDemoMode) {
+        throw new Error('Google sign-in is not available in demo mode');
+      }
+
+      // Import Google auth functions
+      const { signInWithGoogle: googleSignIn } = await import('@/lib/google-auth');
+      
+      // Use the Google auth service
+      const result = await googleSignIn();
+      
+      // Create user object from Google result
+      const user: User = {
+        uid: result.user.uid,
+        email: result.user.email,
+        displayName: result.user.displayName || result.user.email,
+        role: result.profile?.role || 'student',
+        photoURL: result.user.photoURL,
+        createdAt: new Date(),
+        lastLogin: new Date()
+      };
+
+      // Set authentication cookies for middleware
+      setAuthCookies(user);
+
       setUser(user);
       setLoading(false);
       return user;
@@ -231,6 +309,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       // Destroy session
       await SessionManager.destroySession();
+      
+      // Clear authentication cookies
+      clearAuthCookies();
       
       if (!isDemoMode) {
         await firebaseSignOut(auth);
@@ -390,6 +471,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     loading,
     signIn,
+    signInWithGoogle,
     signUp,
     signOut,
     updateUserProfile,
@@ -413,5 +495,8 @@ export function useAuth() {
   }
   return context;
 }
+
+// Export helper functions for external use
+export { setAuthCookies, clearAuthCookies };
 
 export default AuthContext;

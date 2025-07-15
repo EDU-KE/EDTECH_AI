@@ -57,7 +57,7 @@ try {
   // Initialize Auth with error handling
   try {
     auth = getAuth(app);
-    console.log('� Firebase Auth initialized successfully');
+    console.log('🔐 Firebase Auth initialized successfully');
   } catch (authError: any) {
     console.error('❌ Firebase Auth initialization failed:', authError);
     throw new Error(`Firebase Auth initialization failed: ${authError.message}`);
@@ -110,29 +110,18 @@ try {
   }
 }
 
-// Export the initialized instances
-//
-// if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && !isDemoMode) {
-//   try {
-//     connectFirestoreEmulator(db, 'localhost', 8080);
-//     connectAuthEmulator(auth, 'http://localhost:9099');
-//   } catch (error) {
-//     console.log('Emulator connection error (might already be connected):', error);
-//   }
-// }
-
 // Enable offline persistence for better performance with enhanced error handling
 if (typeof window !== 'undefined' && !isDemoMode) {
   enableIndexedDbPersistence(db).catch((err) => {
     if (err.code === 'failed-precondition') {
-      console.log('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+      console.log('ℹ️ Multiple tabs open, persistence can only be enabled in one tab at a time.');
     } else if (err.code === 'unimplemented') {
-      console.log('The current browser does not support persistence.');
+      console.log('ℹ️ The current browser does not support persistence.');
     } else if (isIndexedDBCorruption(err)) {
-      console.warn('IndexedDB corruption detected during persistence setup.');
+      console.warn('🔧 IndexedDB corruption detected during persistence setup.');
       handleIndexedDBCorruption();
     } else {
-      console.warn('Firebase persistence error:', err);
+      console.warn('⚠️ Firebase persistence error:', err);
     }
   });
 }

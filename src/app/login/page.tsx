@@ -16,8 +16,9 @@ import { Label } from "@/components/ui/label"
 import { BookOpenCheck, Twitter } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuthToast } from "@/hooks/use-auth-toast"
-import { signIn, signInWithGoogle, signInWithFacebook, signInWithTwitter } from "@/lib/auth"
+import { signInWithFacebook, signInWithTwitter } from "@/lib/auth"
 import { useAuth } from "@/lib/auth-context"
+import { GoogleSignInButton } from "@/components/auth/google-sign-in"
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -44,7 +45,7 @@ export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { showAuthError, showAuthSuccess } = useAuthToast()
-  const { isDemoMode } = useAuth()
+  const { isDemoMode, signIn, signInWithGoogle } = useAuth()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -65,7 +66,16 @@ export default function LoginPage() {
     try {
       await signIn(formData.email, formData.password)
       showAuthSuccess("Login Successful!", "Welcome back to EdTech AI Hub.")
-      router.push("/dashboard")
+      
+      // Add a small delay to ensure cookies are set
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Use window.location.href for immediate redirect
+      if (typeof window !== 'undefined') {
+        window.location.href = '/dashboard';
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error: any) {
       showAuthError(error)
     } finally {
@@ -73,27 +83,23 @@ export default function LoginPage() {
     }
   }
 
-  const handleGoogleLogin = async () => {
-    setLoading(true)
+  const handleGoogleLoginSuccess = async (result: any) => {
+    // The result is already a User object from auth context
+    showAuthSuccess("Login Successful!", "Welcome back to EdTech AI Hub.")
     
-    try {
-      const result = await signInWithGoogle()
-      
-      // If using redirect, the page will redirect and we won't reach this point
-      if (result) {
-        toast({
-          title: "Login Successful!",
-          description: "Welcome back to EdTech AI Hub.",
-        })
-        router.push("/dashboard")
-      }
-      // If result is null, it means redirect was used and page is redirecting
-    } catch (error: any) {
-      console.error('Google login error:', error)
-      showAuthError(error)
-    } finally {
-      setLoading(false)
+    // Add a small delay to ensure cookies are set
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Use window.location.href for immediate redirect
+    if (typeof window !== 'undefined') {
+      window.location.href = '/dashboard';
+    } else {
+      router.push("/dashboard");
     }
+  }
+
+  const handleGoogleLoginError = (error: Error) => {
+    showAuthError(error)
   }
 
   const handleFacebookLogin = async () => {
@@ -200,15 +206,12 @@ export default function LoginPage() {
                   </div>
                 )}
                 
-                <Button 
-                  variant="outline" 
-                  onClick={handleGoogleLogin} 
+                <GoogleSignInButton
+                  onSuccess={handleGoogleLoginSuccess}
+                  onError={handleGoogleLoginError}
                   disabled={loading || isDemoMode}
                   className="w-full"
-                >
-                    <GoogleIcon className="mr-2 h-4 w-4" />
-                    Continue with Google
-                </Button>
+                />
                 
                 <Button 
                   variant="outline" 

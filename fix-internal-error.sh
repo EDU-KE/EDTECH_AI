@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# Firebase Internal Error Diagnostic
+echo "🔍 Firebase Internal Error Diagnostic"
+echo "====================================="
+echo ""
+
+echo "🚨 Error: auth/internal-error"
+echo "This typically means Google OAuth is not properly configured in Firebase Console"
+echo ""
+
+echo "📋 Checklist - Firebase Console Configuration:"
+echo ""
+
+echo "1. 🔧 Google Provider Status:"
+echo "   Go to: https://console.firebase.google.com/project/last-35eb7/authentication/providers"
+echo "   ✅ Check: Google provider is ENABLED"
+echo "   ✅ Check: Support email is configured"
+echo "   ✅ Check: Web SDK configuration is present"
+echo ""
+
+echo "2. 🌐 Authorized Domains:"
+echo "   Go to: https://console.firebase.google.com/project/last-35eb7/authentication/settings"
+echo "   ✅ Check: These domains are added:"
+echo "   - localhost"
+echo "   - 127.0.0.1"
+echo "   - fictional-space-guide-x556vjvrxwx53p4gp-3000.githubpreview.dev"
+echo "   - fictional-space-guide-x556vjvrxwx53p4gp-9002.githubpreview.dev"
+echo ""
+
+echo "3. 🔑 Google Cloud Console OAuth:"
+echo "   Go to: https://console.cloud.google.com/apis/credentials"
+echo "   ✅ Check: OAuth 2.0 Client ID exists"
+echo "   ✅ Check: Client ID matches Firebase configuration"
+echo "   ✅ Check: Authorized redirect URIs are configured"
+echo ""
+
+echo "4. 🎯 OAuth Consent Screen:"
+echo "   Go to: https://console.cloud.google.com/apis/credentials/consent"
+echo "   ✅ Check: OAuth consent screen is configured"
+echo "   ✅ Check: App status is not 'Testing' (or you're added as test user)"
+echo "   ✅ Check: Support email is configured"
+echo ""
+
+echo "🔧 Common Causes of auth/internal-error:"
+echo "1. Google provider enabled but OAuth client not configured"
+echo "2. OAuth consent screen not published or user not in test users"
+echo "3. OAuth client ID doesn't match Firebase configuration"
+echo "4. Missing redirect URIs in OAuth client"
+echo "5. Firebase project not linked to Google Cloud project"
+echo ""
+
+echo "💡 Quick Fix Steps:"
+echo "1. Go to Google Cloud Console: https://console.cloud.google.com/apis/credentials"
+echo "2. Select project: last-35eb7"
+echo "3. Click 'Create Credentials' > 'OAuth client ID'"
+echo "4. Choose 'Web application'"
+echo "5. Add authorized redirect URIs:"
+echo "   - https://last-35eb7.firebaseapp.com/__/auth/handler"
+echo "   - https://fictional-space-guide-x556vjvrxwx53p4gp-9002.githubpreview.dev"
+echo "6. Copy the Client ID and update Firebase Console"
+echo ""
+
+echo "🆘 Alternative Solution:"
+echo "If OAuth is too complex, use email/password authentication which should work immediately"
+echo ""
+
+echo "🔍 Next Steps:"
+echo "1. Check Firebase Console Google provider settings"
+echo "2. Verify Google Cloud Console OAuth configuration"
+echo "3. Test with email/password auth first"
+echo "4. Then tackle Google OAuth step by step"
