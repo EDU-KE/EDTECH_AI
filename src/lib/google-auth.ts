@@ -7,6 +7,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, isDemoMode } from './firebase';
+import { handleFirebaseAuthError } from './firebase-auth-fix';
 
 export interface GoogleSignInResult {
   user: {
@@ -188,6 +189,9 @@ class GoogleAuthService {
       stack: error.stack
     });
 
+    // Use the enhanced error handler
+    handleFirebaseAuthError(error);
+
     switch (errorCode) {
       case 'auth/popup-closed-by-user':
         title = 'Sign-in Cancelled';
@@ -208,15 +212,23 @@ class GoogleAuthService {
         break;
         
       case 'auth/internal-error':
-        title = '🔧 Google OAuth Not Enabled';
-        message = `Google authentication provider is not enabled in Firebase Console.
+        title = '🔧 Firebase Auth Internal Error';
+        message = `Firebase authentication encountered an internal error. This is commonly caused by:
         
+1. Network connectivity issues
+2. Firebase JavaScript loading problems
+3. Browser security restrictions
+4. Missing authorized domains in Firebase Console
+
 📋 To fix this:
-1. Open Firebase Console: https://console.firebase.google.com/project/last-35eb7/authentication/providers
-2. Find "Google" in the Sign-in providers list
-3. Click on Google and toggle "Enable" to ON
-4. Add a support email address
-5. Click "Save"
+1. Check your internet connection
+2. Verify authorized domains in Firebase Console
+3. Try refreshing the page
+4. Check browser console for detailed error messages
+5. Ensure all required domains are added to Firebase Console
+
+Current domain: ${window.location.hostname}
+Required domains: localhost, 127.0.0.1, *.githubpreview.dev
 6. Refresh this page and try again
 
 This is a one-time setup that takes about 2 minutes.`;

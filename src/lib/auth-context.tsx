@@ -10,8 +10,11 @@ import {
   updateProfile
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db, isDemoMode } from './firebase';
+import { getAuthInstance, db, isDemoMode } from './firebase';
 import { SessionManager, SessionData } from './session-manager-client';
+
+// Import diagnostic function for debugging
+import './diagnose-google-auth';
 
 export interface User {
   uid: string;
@@ -196,8 +199,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
         return demoUser;
       } else {
-        // Firebase authentication
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        // Firebase authentication - get auth instance asynchronously
+        const authInstance = await getAuthInstance();
+        if (!authInstance) {
+          throw new Error('Firebase Auth not initialized');
+        }
+        
+        const userCredential = await signInWithEmailAndPassword(authInstance, email, password);
         const user = await mapFirebaseUser(userCredential.user);
         
         if (!user) {
@@ -231,7 +239,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('Sign up is not available in demo mode');
       }
 
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Get auth instance asynchronously
+      const authInstance = await getAuthInstance();
+      if (!authInstance) {
+        throw new Error('Firebase Auth not initialized');
+      }
+
+      const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
       
       // Update user profile
       await updateProfile(userCredential.user, { displayName });
@@ -273,8 +287,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('Google sign-in is not available in demo mode');
       }
 
-      // Import Google auth functions
-      const { signInWithGoogle: googleSignIn } = await import('@/lib/google-auth');
+      // Use direct import instead of dynamic import
+      const { signInWithGoogle: googleSignIn } = await import('./google-auth');
       
       // Use the Google auth service
       const result = await googleSignIn();
@@ -314,7 +328,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearAuthCookies();
       
       if (!isDemoMode) {
-        await firebaseSignOut(auth);
+        const authInstance = await getAuthInstance();
+        if (authInstance) {
+          await firebaseSignOut(authInstance);
+        }
       }
       
       setUser(null);
@@ -333,10 +350,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!isDemoMode) {
         // Update Firebase profile
         if (updates.displayName || updates.photoURL) {
-          await updateProfile(auth.currentUser!, {
-            displayName: updates.displayName || user.displayName,
-            photoURL: updates.photoURL || user.photoURL || null
-          });
+          const authInstance = await getAuthInstance();
+          if (authInstance?.currentUser) {
+            await updateProfile(authInstance.currentUser, {
+              displayName: updates.displayName || user.displayName,
+              photoURL: updates.photoURL || user.photoURL || null
+            });
+          }
         }
 
         // Update Firestore document
@@ -433,22 +453,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setLoading(true);
-      
-      if (firebaseUser) {
-        const user = await mapFirebaseUser(firebaseUser);
-        setUser(user);
-      } else {
-        // Clear session when user signs out
-        await SessionManager.destroySession();
-        setUser(null);
+    // Setup auth state listener asynchronously
+    const setupAuthListener = async () => {
+      try {
+        const authInstance = await getAuthInstance();
+        if (!authInstance) {
+          console.error('Failed to get Firebase Auth instance');
+          setLoading(false);
+          return;
+        }
+
+        const unsubscribe = onAuthStateChanged(authInstance, async (firebaseUser) => {
+          setLoading(true);
+          
+          if (firebaseUser) {
+            const user = await mapFirebaseUser(firebaseUser);
+            setUser(user);
+          } else {
+            // Clear session when user signs out
+            await SessionManager.destroySession();
+            setUser(null);
+          }
+          
+          setLoading(false);
+        });
+
+        return unsubscribe;
+      } catch (error) {
+        console.error('Error setting up auth listener:', error);
+        setLoading(false);
+        return null;
       }
-      
-      setLoading(false);
+    };
+
+    setupAuthListener().then((unsubscribe) => {
+      // Store the unsubscribe function for cleanup
+      if (unsubscribe) {
+        return unsubscribe;
+      }
     });
 
-    return unsubscribe;
+    // Return cleanup function
+    return () => {
+      // Cleanup will be handled by the async setup
+    };
   }, []);
 
   // Auto-refresh session periodically
