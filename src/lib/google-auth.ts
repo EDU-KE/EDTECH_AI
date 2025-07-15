@@ -55,18 +55,8 @@ class GoogleAuthService {
       throw new Error('Google sign-in is not available in demo mode. Please configure Firebase.');
     }
 
-    // Check if Firebase Auth is properly initialized
-    if (!auth) {
-      throw new Error('Firebase Auth is not initialized. Please check your Firebase configuration.');
-    }
-
     try {
       console.log('🔄 Starting Google sign-in with popup...');
-      console.log('🔐 Firebase Auth status:', {
-        authInitialized: !!auth,
-        currentUser: auth.currentUser,
-        appId: auth.app.options.appId
-      });
       
       const result = await signInWithPopup(auth, this.provider);
       const { user } = result;
@@ -290,23 +280,8 @@ This is a one-time setup that takes about 2 minutes.`;
     }
 
     try {
-      // Check if Firebase Auth is initialized
-      if (!auth) {
-        return {
-          available: false,
-          configured: false,
-          error: 'Firebase Auth not initialized'
-        };
-      }
-
       // Try to create a provider instance
       const testProvider = new GoogleAuthProvider();
-      
-      console.log('🔍 Google Provider Status Check:', {
-        authInitialized: !!auth,
-        providerCreated: !!testProvider,
-        appId: auth.app.options.appId
-      });
       
       return {
         available: true,
@@ -314,7 +289,6 @@ This is a one-time setup that takes about 2 minutes.`;
       };
       
     } catch (error: any) {
-      console.error('❌ Google Provider Status Check failed:', error);
       return {
         available: false,
         configured: false,
