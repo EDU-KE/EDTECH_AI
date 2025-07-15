@@ -17,8 +17,9 @@ import { Label } from "@/components/ui/label"
 import { BookOpenCheck } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuthToast } from "@/hooks/use-auth-toast"
-import { signUp, signInWithGoogle, signInWithFacebook, signInWithTwitter } from "@/lib/auth"
+import { signInWithFacebook, signInWithTwitter } from "@/lib/auth"
 import { useAuth } from "@/lib/auth-context"
+import { GoogleSignInButton } from "@/components/auth/google-sign-in"
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -45,7 +46,7 @@ export default function SignupPage() {
     const router = useRouter()
     const { toast } = useToast()
     const { showAuthError, showAuthSuccess } = useAuthToast()
-    const { isDemoMode } = useAuth()
+    const { isDemoMode, signUp, signInWithGoogle } = useAuth()
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
         fullName: '',
@@ -65,7 +66,7 @@ export default function SignupPage() {
         setLoading(true)
 
         try {
-            await signUp(formData.email, formData.password, formData.fullName)
+            await signUp(formData.email, formData.password, formData.fullName, 'student')
             showAuthSuccess("Sign Up Successful!", "Welcome to EdTech AI Hub. You can now access your dashboard.")
             router.push("/dashboard")
         } catch (error: any) {
@@ -75,17 +76,23 @@ export default function SignupPage() {
         }
     }
 
-    const handleGoogleSignup = async () => {
-        setLoading(true)
-        try {
-            await signInWithGoogle()
-            showAuthSuccess("Sign Up Successful!", "Welcome to EdTech AI Hub. You can now access your dashboard.")
-            router.push("/dashboard")
-        } catch (error: any) {
-            showAuthError(error)
-        } finally {
-            setLoading(false)
+    const handleGoogleSignupSuccess = async (result: any) => {
+        // The result is already a User object from auth context
+        showAuthSuccess("Sign Up Successful!", "Welcome to EdTech AI Hub. You can now access your dashboard.")
+        
+        // Add a small delay to ensure cookies are set
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Use window.location.href for immediate redirect
+        if (typeof window !== 'undefined') {
+            window.location.href = '/dashboard';
+        } else {
+            router.push("/dashboard");
         }
+    }
+
+    const handleGoogleSignupError = (error: Error) => {
+        showAuthError(error)
     }
 
     const handleFacebookSignup = async () => {
@@ -188,15 +195,12 @@ export default function SignupPage() {
           </div>
           
           <div className="grid gap-3">
-            <Button 
-              variant="outline" 
-              onClick={handleGoogleSignup} 
+            <GoogleSignInButton
+              onSuccess={handleGoogleSignupSuccess}
+              onError={handleGoogleSignupError}
               disabled={loading || isDemoMode}
               className="w-full"
-            >
-              <GoogleIcon className="mr-2 h-4 w-4" />
-              Sign up with Google
-            </Button>
+            />
             
             <Button 
               variant="outline" 

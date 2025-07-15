@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        .warning { color: #ffc107; }
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #357ae8;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #ddd;
+        }
+        .status.success {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+        .status.error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        .status.info {
+            background: #d1ecf1;
+            border-left-color: #17a2b8;
+        }
+        .code {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Google OAuth Configuration Test</h1>
+        
+        <div class="status info">
+            <h3>📋 Configuration Status</h3>
+            <p><strong>Project ID:</strong> last-35eb7</p>
+            <p><strong>Auth Domain:</strong> last-35eb7.firebaseapp.com</p>
+            <p><strong>Current URL:</strong> <span id="currentUrl"></span></p>
+        </div>
+
+        <div class="status" id="firebaseStatus">
+            <h3>🔥 Firebase Status</h3>
+            <p id="firebaseMessage">Checking Firebase configuration...</p>
+        </div>
+
+        <div class="status" id="googleStatus">
+            <h3>🔍 Google Provider Status</h3>
+            <p id="googleMessage">Checking Google Auth provider...</p>
+        </div>
+
+        <div class="status info">
+            <h3>🚀 Next Steps</h3>
+            <ol>
+                <li>Go to <a href="https://console.firebase.google.com/project/last-35eb7/authentication/providers" target="_blank">Firebase Console</a></li>
+                <li>Enable Google Sign-In provider</li>
+                <li>Add authorized domains:
+                    <div class="code">
+                        localhost<br>
+                        fictional-space-guide-x556vjvrxwx53p4gp-3000.githubpreview.dev<br>
+                        fictional-space-guide-x556vjvrxwx53p4gp-3000.app.github.dev
+                    </div>
+                </li>
+                <li>Test Google sign-in in your application</li>
+            </ol>
+        </div>
+
+        <button onclick="testGoogleAuth()" id="testBtn">Test Google Sign-In</button>
+        
+        <div id="testResult"></div>
+    </div>
+
+    <script type="module">
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD05R5TMWg9QcWqkEVZnw-STsZgzY_Xe9k",
+            authDomain: "last-35eb7.firebaseapp.com",
+            projectId: "last-35eb7",
+            storageBucket: "last-35eb7.firebasestorage.app",
+            messagingSenderId: "760347188535",
+            appId: "1:760347188535:web:7b0a5b17d87aa38b430eb2"
+        };
+
+        // Set current URL
+        document.getElementById('currentUrl').textContent = window.location.href;
+
+        // Test Firebase configuration
+        async function testFirebaseConfig() {
+            try {
+                const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+                const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                
+                document.getElementById('firebaseStatus').className = 'status success';
+                document.getElementById('firebaseMessage').innerHTML = '✅ Firebase initialized successfully';
+                
+                return auth;
+            } catch (error) {
+                document.getElementById('firebaseStatus').className = 'status error';
+                document.getElementById('firebaseMessage').innerHTML = `❌ Firebase initialization failed: ${error.message}`;
+                return null;
+            }
+        }
+
+        // Test Google Auth provider
+        async function testGoogleProvider(auth) {
+            try {
+                const { GoogleAuthProvider } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                
+                const provider = new GoogleAuthProvider();
+                provider.addScope('email');
+                provider.addScope('profile');
+                
+                document.getElementById('googleStatus').className = 'status success';
+                document.getElementById('googleMessage').innerHTML = '✅ Google Auth provider configured successfully';
+                
+                return provider;
+            } catch (error) {
+                document.getElementById('googleStatus').className = 'status error';
+                document.getElementById('googleMessage').innerHTML = `❌ Google provider failed: ${error.message}`;
+                return null;
+            }
+        }
+
+        // Test Google sign-in
+        window.testGoogleAuth = async function() {
+            const testBtn = document.getElementById('testBtn');
+            const testResult = document.getElementById('testResult');
+            
+            testBtn.disabled = true;
+            testBtn.textContent = 'Testing...';
+            
+            try {
+                const auth = await testFirebaseConfig();
+                if (!auth) {
+                    throw new Error('Firebase initialization failed');
+                }
+                
+                const provider = await testGoogleProvider(auth);
+                if (!provider) {
+                    throw new Error('Google provider configuration failed');
+                }
+                
+                const { signInWithPopup } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                
+                const result = await signInWithPopup(auth, provider);
+                
+                testResult.innerHTML = `
+                    <div class="status success">
+                        <h3>✅ Google Sign-In Successful!</h3>
+                        <p><strong>User:</strong> ${result.user.email}</p>
+                        <p><strong>Display Name:</strong> ${result.user.displayName}</p>
+                        <p><strong>UID:</strong> ${result.user.uid}</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                let errorMessage = error.message;
+                let troubleshooting = '';
+                
+                if (error.code === 'auth/popup-blocked') {
+                    errorMessage = 'Popup was blocked by browser';
+                    troubleshooting = 'Allow popups for this site or use redirect mode';
+                } else if (error.code === 'auth/operation-not-allowed') {
+                    errorMessage = 'Google Sign-In is not enabled';
+                    troubleshooting = 'Enable Google provider in Firebase Console';
+                } else if (error.code === 'auth/unauthorized-domain') {
+                    errorMessage = 'Unauthorized domain';
+                    troubleshooting = 'Add this domain to authorized domains in Firebase Console';
+                }
+                
+                testResult.innerHTML = `
+                    <div class="status error">
+                        <h3>❌ Google Sign-In Failed</h3>
+                        <p><strong>Error:</strong> ${errorMessage}</p>
+                        <p><strong>Code:</strong> ${error.code || 'unknown'}</p>
+                        ${troubleshooting ? `<p><strong>Solution:</strong> ${troubleshooting}</p>` : ''}
+                    </div>
+                `;
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = 'Test Google Sign-In';
+            }
+        };
+
+        // Initialize tests
+        testFirebaseConfig().then(auth => {
+            if (auth) {
+                testGoogleProvider(auth);
+            }
+        });
+    </script>
+</body>
+</html>

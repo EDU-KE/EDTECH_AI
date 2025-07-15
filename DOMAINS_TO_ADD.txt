@@ -1,0 +1,28 @@
+🔧 Firebase Authorized Domains - Exact List
+==========================================
+
+Add these domains to your Firebase Console:
+https://console.firebase.google.com/project/last-35eb7/authentication/settings
+
+DOMAINS TO ADD:
+1. localhost
+2. 127.0.0.1
+3. fictional-space-guide-x556vjvrxwx53p4gp-3000.githubpreview.dev
+4. fictional-space-guide-x556vjvrxwx53p4gp-3000.app.github.dev
+5. fictional-space-guide-x556vjvrxwx53p4gp-9002.githubpreview.dev
+6. fictional-space-guide-x556vjvrxwx53p4gp-9002.app.github.dev
+
+STEPS:
+1. Click the link above
+2. Scroll to "Authorized domains" section
+3. Click "Add domain" button
+4. Add each domain from the list above (one by one)
+5. Click "Save" after each addition
+
+IMPORTANT:
+- Don't include http:// or https://
+- Don't include trailing slashes
+- Add exactly as shown above
+
+Your dev server runs on port 9002, so the main URL will be:
+https://fictional-space-guide-x556vjvrxwx53p4gp-9002.githubpreview.dev

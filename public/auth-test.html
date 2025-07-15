@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Flow Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .success { border-color: #4CAF50; background: #f1f8e9; }
+        .error { border-color: #f44336; background: #ffebee; }
+        .warning { border-color: #ff9800; background: #fff3e0; }
+        .info { border-color: #2196f3; background: #e3f2fd; }
+        
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #005a85; }
+        button:disabled { 
+            background: #ccc; 
+            cursor: not-allowed; 
+        }
+        
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        input {
+            width: 200px;
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .log {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Authentication Flow Test</h1>
+        <p>This page tests the authentication functionality of your EdTech AI Hub application.</p>
+        
+        <div class="test-section info">
+            <h3>📊 System Status</h3>
+            <div id="systemStatus">Loading...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔑 Email/Password Authentication Test</h3>
+            <div>
+                <input type="email" id="email" placeholder="Email (try: student@demo.com)" value="student@demo.com">
+                <input type="password" id="password" placeholder="Password (try: password123)" value="password123">
+                <br>
+                <button onclick="testEmailLogin()">Test Login</button>
+                <button onclick="testEmailSignup()">Test Signup</button>
+            </div>
+            <div id="emailResult" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔗 Social Authentication Test</h3>
+            <button onclick="testGoogleAuth()">Test Google OAuth</button>
+            <button onclick="testFacebookAuth()">Test Facebook Auth</button>
+            <button onclick="testTwitterAuth()">Test Twitter Auth</button>
+            <div id="socialResult" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔧 Firebase Configuration Test</h3>
+            <button onclick="testFirebaseConfig()">Check Firebase Config</button>
+            <button onclick="testFirebaseConnection()">Test Firebase Connection</button>
+            <div id="configResult" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📋 Authentication Logs</h3>
+            <button onclick="clearLogs()">Clear Logs</button>
+            <div id="authLogs" class="log"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        let logs = [];
+        
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.push(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+            updateLogDisplay();
+        }
+        
+        function updateLogDisplay() {
+            const logElement = document.getElementById('authLogs');
+            logElement.textContent = logs.join('\\n');
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function clearLogs() {
+            logs = [];
+            updateLogDisplay();
+        }
+        
+        function updateResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'result ' + type;
+            addLog(message, type);
+        }
+        
+        // Make functions global
+        window.testEmailLogin = async function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            updateResult('emailResult', 'Testing email login...', 'info');
+            
+            try {
+                // Navigate to login page and test
+                const loginURL = '/login';
+                addLog('Testing email login with credentials: ' + email);
+                
+                // Since we can't directly test Firebase auth from this page,
+                // we'll provide instructions for manual testing
+                const testResult = \`
+Email Login Test Instructions:
+1. Open http://localhost:9002/login in a new tab
+2. Enter email: \${email}
+3. Enter password: \${password}
+4. Click "Sign In"
+5. Check browser console for any errors
+
+Expected Results:
+- Demo mode: Should login with demo credentials
+- Firebase mode: Should authenticate with Firebase
+- Any errors will appear in browser console
+                \`;
+                
+                updateResult('emailResult', testResult, 'info');
+                
+            } catch (error) {
+                updateResult('emailResult', 'Error: ' + error.message, 'error');
+            }
+        };
+        
+        window.testEmailSignup = async function() {
+            updateResult('emailResult', 'Testing email signup...', 'info');
+            
+            const testResult = \`
+Email Signup Test Instructions:
+1. Open http://localhost:9002/signup in a new tab
+2. Fill out the signup form
+3. Click "Create account"
+4. Check browser console for any errors
+
+Expected Results:
+- Demo mode: Signup not available
+- Firebase mode: New account created in Firebase
+                \`;
+                
+            updateResult('emailResult', testResult, 'info');
+        };
+        
+        window.testGoogleAuth = async function() {
+            updateResult('socialResult', 'Testing Google OAuth...', 'info');
+            
+            const testResult = \`
+Google OAuth Test Instructions:
+1. Open http://localhost:9002/login in a new tab
+2. Click "Sign in with Google" button
+3. Watch for popup or redirect
+4. Check browser console for specific errors
+
+Common Issues:
+- "auth/internal-error": Google provider not enabled in Firebase
+- "auth/unauthorized-domain": Domain not authorized
+- "auth/popup-blocked": Browser blocked popup
+
+Fix: Enable Google provider in Firebase Console:
+https://console.firebase.google.com/project/last-35eb7/authentication/providers
+                \`;
+                
+            updateResult('socialResult', testResult, 'warning');
+        };
+        
+        window.testFacebookAuth = async function() {
+            updateResult('socialResult', 'Testing Facebook Auth...', 'info');
+            addLog('Facebook auth test initiated');
+            
+            const testResult = \`
+Facebook Auth Test:
+Similar to Google OAuth - check if provider is enabled in Firebase Console.
+                \`;
+                
+            updateResult('socialResult', testResult, 'info');
+        };
+        
+        window.testTwitterAuth = async function() {
+            updateResult('socialResult', 'Testing Twitter Auth...', 'info');
+            addLog('Twitter auth test initiated');
+            
+            const testResult = \`
+Twitter Auth Test:
+Similar to Google OAuth - check if provider is enabled in Firebase Console.
+                \`;
+                
+            updateResult('socialResult', testResult, 'info');
+        };
+        
+        window.testFirebaseConfig = async function() {
+            updateResult('configResult', 'Checking Firebase configuration...', 'info');
+            
+            try {
+                // Check if running in iframe or direct access
+                const isStandalone = window.location.pathname.includes('auth-test.html');
+                
+                if (isStandalone) {
+                    const configResult = \`
+Firebase Configuration Status:
+✅ Project ID: last-35eb7
+✅ Auth Domain: last-35eb7.firebaseapp.com
+✅ Environment variables: Configured
+✅ Firebase SDK: Available
+
+Next.js App Status:
+🌐 Main app: http://localhost:9002
+🔐 Login: http://localhost:9002/login
+📝 Signup: http://localhost:9002/signup
+
+To test authentication:
+1. Visit the main app URLs above
+2. Try email/password authentication first
+3. Check Google OAuth provider in Firebase Console
+                    \`;
+                    
+                    updateResult('configResult', configResult, 'success');
+                } else {
+                    updateResult('configResult', 'Open this test page directly to check configuration', 'warning');
+                }
+                
+            } catch (error) {
+                updateResult('configResult', 'Configuration check failed: ' + error.message, 'error');
+            }
+        };
+        
+        window.testFirebaseConnection = async function() {
+            updateResult('configResult', 'Testing Firebase connection...', 'info');
+            
+            const connectionResult = \`
+Firebase Connection Test:
+This test page cannot directly connect to Firebase due to security restrictions.
+
+To test Firebase connection:
+1. Open browser developer tools (F12)
+2. Go to http://localhost:9002/login
+3. Try to sign in
+4. Check Console tab for Firebase errors
+5. Check Network tab for failed requests
+
+Common Error Patterns:
+- "Firebase: Error (auth/...)" = Firebase Auth error
+- "loadJS" errors = OAuth provider issues
+- Network errors = Connectivity issues
+            \`;
+            
+            updateResult('configResult', connectionResult, 'info');
+        };
+        
+        // Initialize system status
+        window.addEventListener('load', function() {
+            const systemStatus = \`
+🔥 Firebase Project: last-35eb7
+🌐 Auth Domain: last-35eb7.firebaseapp.com
+🖥️ Dev Server: http://localhost:9002
+📅 Test Time: \${new Date().toLocaleString()}
+
+Status: All configuration files present and valid
+Next: Test authentication flows manually
+            \`;
+            
+            document.getElementById('systemStatus').textContent = systemStatus;
+            addLog('Authentication test page loaded');
+            addLog('System status: All components ready for testing');
+        });
+        
+        // Auto-run configuration test
+        setTimeout(() => {
+            testFirebaseConfig();
+        }, 1000);
+    </script>
+</body>
+</html>

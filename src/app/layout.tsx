@@ -8,6 +8,7 @@ import { AuthProvider } from '@/lib/auth-context';
 import { CurriculumWrapper } from '@/components/CurriculumWrapper';
 import { CurriculumProvider } from '@/components/CurriculumContext';
 import { FirebaseErrorBoundary } from '@/components/FirebaseErrorBoundary';
+import { IndexedDBErrorHandler } from '@/components/IndexedDBErrorHandler';
 
 const fontBody = Inter({
   subsets: ['latin'],
@@ -34,6 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("antialiased", fontBody.variable, fontCode.variable)}>
+        <IndexedDBErrorHandler />
         <FirebaseErrorBoundary>
           <AuthProvider>
             <CurriculumProvider>
