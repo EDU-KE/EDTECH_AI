@@ -43,7 +43,7 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:abcdef",
 };
 
-// Initialize Firebase with enhanced error handling
+// Initialize Firebase with error handling
 let app: FirebaseApp;
 let db: Firestore;
 let auth: Auth;
@@ -52,16 +52,12 @@ try {
   // Initialize Firebase app
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   
-  console.log('🔥 Firebase App initialized successfully');
-  
-  // Initialize Auth with error handling
-  try {
-    auth = getAuth(app);
-    console.log('� Firebase Auth initialized successfully');
-  } catch (authError: any) {
-    console.error('❌ Firebase Auth initialization failed:', authError);
-    throw new Error(`Firebase Auth initialization failed: ${authError.message}`);
+  if (isDemoMode) {
+    console.log('🚀 Firebase Demo Mode: Using local authentication simulation');
   }
+  
+  // Initialize Auth
+  auth = getAuth(app);
   
   // Initialize Firestore with enhanced error handling
   try {
@@ -69,13 +65,12 @@ try {
       cacheSizeBytes: CACHE_SIZE_UNLIMITED,
       experimentalForceLongPolling: false,
     });
-    console.log('📊 Firestore initialized successfully');
   } catch (firestoreError: any) {
-    console.warn('⚠️ Firestore initialization failed:', firestoreError);
+    console.warn('Firestore initialization failed:', firestoreError);
     
     // Handle IndexedDB corruption specifically
     if (isIndexedDBCorruption(firestoreError)) {
-      console.warn('🔧 IndexedDB corruption detected during initialization.');
+      console.warn('IndexedDB corruption detected during initialization.');
       handleIndexedDBCorruption();
       // Use default Firestore as fallback
       db = getFirestore(app);
@@ -83,11 +78,10 @@ try {
       // Fall back to default Firestore initialization
       db = getFirestore(app);
     }
-    console.log('📊 Firestore fallback initialized');
   }
   
-} catch (error: any) {
-  console.error('❌ Firebase initialization error:', error);
+} catch (error) {
+  console.error('Firebase initialization error:', error);
   
   // Create minimal Firebase app for demo mode
   if (isDemoMode) {
@@ -100,9 +94,8 @@ try {
       });
       auth = getAuth(app);
       db = getFirestore(app);
-      console.log('🎭 Demo Firebase setup completed');
-    } catch (demoError: any) {
-      console.error('❌ Demo Firebase setup failed:', demoError);
+    } catch (demoError) {
+      console.error('Demo Firebase setup failed:', demoError);
       throw new Error('Firebase initialization failed completely. Please check your configuration.');
     }
   } else {
@@ -137,26 +130,15 @@ if (typeof window !== 'undefined' && !isDemoMode) {
   });
 }
 
-// Enhanced Firebase configuration status logging
+// Log Firebase configuration status
 if (typeof window !== 'undefined') {
-  console.log('🔥 Firebase Configuration Status:', {
+  console.log('🔥 Firebase Configuration:', {
     isDemoMode,
     projectId: firebaseConfig.projectId,
     authDomain: firebaseConfig.authDomain,
     usingRealFirebase: !isDemoMode,
-    authInitialized: !!auth,
-    firestoreInitialized: !!db,
-    appInitialized: !!app
+    emulatorsDisabled: true
   });
-  
-  // Additional auth status check
-  if (auth) {
-    console.log('🔐 Firebase Auth Status:', {
-      currentUser: auth.currentUser,
-      authReady: true,
-      appId: app.options.appId
-    });
-  }
 }
 
 export { db, auth, isDemoMode };
