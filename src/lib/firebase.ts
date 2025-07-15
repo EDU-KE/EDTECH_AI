@@ -3,11 +3,12 @@ import {
   getFirestore, 
   enableIndexedDbPersistence,
   CACHE_SIZE_UNLIMITED,
-  initializeFirestore,
   Firestore
 } from 'firebase/firestore';
-import { getAuth, Auth } from 'firebase/auth';
+import { Auth } from 'firebase/auth';
 import { handleIndexedDBCorruption, isIndexedDBCorruption } from './firebase-indexeddb-handler';
+import { addFirebaseAuthMetaTags, handleFirebaseAuthError } from './firebase-auth-fix';
+import { getFirebaseAuth, addFirebaseAuthDomainSupport } from './firebase-auth-loader';
 
 // Check if we're in demo mode (no Firebase config provided)
 const checkDemoMode = (): boolean => {
@@ -48,6 +49,20 @@ let app: FirebaseApp;
 let db: Firestore;
 let auth: Auth;
 
+// Add required meta tags for Firebase auth
+if (typeof window !== 'undefined') {
+  addFirebaseAuthMetaTags();
+  addFirebaseAuthDomainSupport();
+  
+  // Load diagnostic tool in development
+  if (process.env.NODE_ENV === 'development') {
+    import('./firebase-auth-diagnostic').then(() => {
+      console.log('🔍 Firebase Auth Diagnostic Tool loaded');
+      console.log('Use diagnoseFirebaseAuth() or testFirebaseAuth() in console to debug');
+    });
+  }
+}
+
 try {
   // Initialize Firebase app
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
@@ -56,32 +71,33 @@ try {
     console.log('🚀 Firebase Demo Mode: Using local authentication simulation');
   }
   
-  // Initialize Auth
-  auth = getAuth(app);
-  
-  // Initialize Firestore with enhanced error handling
-  try {
-    db = initializeFirestore(app, {
-      cacheSizeBytes: CACHE_SIZE_UNLIMITED,
-      experimentalForceLongPolling: false,
+  // Initialize Auth with enhanced loader
+  if (typeof window !== 'undefined') {
+    // Client-side: use the enhanced auth loader
+    getFirebaseAuth(app).then((authInstance) => {
+      auth = authInstance;
+      console.log('✅ Firebase Auth loaded successfully');
+    }).catch((error) => {
+      console.error('❌ Firebase Auth loading failed:', error);
+      handleFirebaseAuthError(error);
+      // Import getAuth here as fallback
+      import('firebase/auth').then(({ getAuth }) => {
+        auth = getAuth(app);
+      });
     });
-  } catch (firestoreError: any) {
-    console.warn('Firestore initialization failed:', firestoreError);
-    
-    // Handle IndexedDB corruption specifically
-    if (isIndexedDBCorruption(firestoreError)) {
-      console.warn('IndexedDB corruption detected during initialization.');
-      handleIndexedDBCorruption();
-      // Use default Firestore as fallback
-      db = getFirestore(app);
-    } else {
-      // Fall back to default Firestore initialization
-      db = getFirestore(app);
-    }
+  } else {
+    // Server-side: use dynamic import
+    import('firebase/auth').then(({ getAuth }) => {
+      auth = getAuth(app);
+    });
   }
+  
+  // Initialize Firestore with simple initialization
+  db = getFirestore(app);
   
 } catch (error) {
   console.error('Firebase initialization error:', error);
+  handleFirebaseAuthError(error);
   
   // Create minimal Firebase app for demo mode
   if (isDemoMode) {
@@ -92,7 +108,10 @@ try {
         authDomain: "demo-project.firebaseapp.com",
         projectId: "demo-project",
       });
-      auth = getAuth(app);
+      // Use dynamic import for demo mode too
+      import('firebase/auth').then(({ getAuth }) => {
+        auth = getAuth(app);
+      });
       db = getFirestore(app);
     } catch (demoError) {
       console.error('Demo Firebase setup failed:', demoError);
@@ -141,5 +160,31 @@ if (typeof window !== 'undefined') {
   });
 }
 
-export { db, auth, isDemoMode };
+// Export the initialized instances with safe access
+export { db, isDemoMode };
 export default app;
+
+// Safe auth getter that handles async loading
+export async function getAuthInstance(): Promise<Auth> {
+  if (auth) {
+    return auth;
+  }
+  
+  // If auth is not ready, wait for it
+  let attempts = 0;
+  const maxAttempts = 50; // 5 seconds max
+  
+  while (!auth && attempts < maxAttempts) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    attempts++;
+  }
+  
+  if (!auth) {
+    throw new Error('Firebase Auth not initialized');
+  }
+  
+  return auth;
+}
+
+// For backward compatibility - use with caution
+export { auth };
