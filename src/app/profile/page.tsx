@@ -259,10 +259,10 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">Curriculum</label>
-                    <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-md">
-                      <span className="text-lg">{curriculumInfo?.icon}</span>
+                    <div className={`flex items-center gap-2 p-3 rounded-lg ${curriculumInfo?.theme.secondary} border ${curriculumInfo?.theme.border}`}>
+                      <span className="text-xl">{curriculumInfo?.icon}</span>
                       <div>
-                        <div className="text-sm font-medium">{curriculumInfo?.name}</div>
+                        <div className={`text-sm font-medium ${curriculumInfo?.theme.accent}`}>{curriculumInfo?.name}</div>
                         <div className="text-xs text-muted-foreground">{userProfile.curriculum}</div>
                       </div>
                     </div>
@@ -271,7 +271,7 @@ export default function ProfilePage() {
                   {userProfile.gradeLevel && (
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-muted-foreground">Grade Level</label>
-                      <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-md">
+                      <div className={`flex items-center gap-2 p-3 rounded-lg ${curriculumInfo?.theme.secondary} border ${curriculumInfo?.theme.border}`}>
                         <BookOpen className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">{userProfile.gradeLevel}</span>
                       </div>
@@ -299,7 +299,7 @@ export default function ProfilePage() {
                     <label className="text-sm font-medium text-muted-foreground">Available Subjects</label>
                     <div className="flex flex-wrap gap-2">
                       {curriculumInfo.subjects.slice(0, 6).map((subject) => (
-                        <Badge key={subject} variant="outline" className="text-xs">
+                        <Badge key={subject} variant="outline" className={`text-xs ${curriculumInfo.theme.badge}`}>
                           {subject}
                         </Badge>
                       ))}
@@ -308,6 +308,16 @@ export default function ProfilePage() {
                           +{curriculumInfo.subjects.length - 6} more
                         </Badge>
                       )}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">Key Features</label>
+                    <div className="flex flex-wrap gap-2">
+                      {curriculumInfo.features.map((feature) => (
+                        <Badge key={feature} variant="secondary" className={`text-xs ${curriculumInfo.theme.badge}`}>
+                          {feature}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
                 </div>

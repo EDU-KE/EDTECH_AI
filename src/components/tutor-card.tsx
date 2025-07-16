@@ -7,6 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
 import type { OnlineTutor } from '@/lib/mock-data';
 import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCurriculumTheme, getThemeOrDefault } from '@/hooks/use-curriculum-theme';
 
 interface TutorCardProps {
   tutor: OnlineTutor;
@@ -14,8 +15,14 @@ interface TutorCardProps {
 }
 
 export const TutorCard = React.memo(function TutorCard({ tutor, compact = false }: TutorCardProps) {
+  const { theme } = useCurriculumTheme();
+  const currentTheme = getThemeOrDefault(theme);
+
   return (
-    <Card className={cn("hover:shadow-lg transition-shadow duration-300 h-full", compact ? "flex items-center p-4 gap-4" : "flex flex-col")}>
+    <Card className={cn(
+      `hover:shadow-lg transition-all duration-300 h-full border-2 ${currentTheme.border} ${currentTheme.hover}`, 
+      compact ? "flex items-center p-4 gap-4" : "flex flex-col"
+    )}>
       <Avatar className={cn(compact ? 'h-16 w-16' : 'h-24 w-24 mx-auto mt-6')}>
         <AvatarImage src={tutor.avatar} alt={tutor.name} data-ai-hint={tutor.hint} />
         <AvatarFallback>{tutor.name.charAt(0)}</AvatarFallback>
@@ -23,8 +30,8 @@ export const TutorCard = React.memo(function TutorCard({ tutor, compact = false 
       
       <div className={cn(!compact && "text-center")}>
         <CardHeader className={cn(compact ? "p-0" : "")}>
-            <CardTitle className={cn(compact ? "text-base" : "")}>{tutor.name}</CardTitle>
-            <Badge variant="secondary" className="w-fit mx-auto mt-1">{tutor.specialty}</Badge>
+            <CardTitle className={cn(compact ? "text-base" : "", currentTheme.accent)}>{tutor.name}</CardTitle>
+            <Badge variant="secondary" className={`w-fit mx-auto mt-1 ${currentTheme.badge}`}>{tutor.specialty}</Badge>
         </CardHeader>
         <CardContent className={cn("flex-grow", compact ? "p-0 hidden" : "pt-2")}>
           <div className="flex justify-center items-center gap-1">
@@ -34,7 +41,7 @@ export const TutorCard = React.memo(function TutorCard({ tutor, compact = false 
           </div>
         </CardContent>
         <CardFooter className={cn(compact ? "p-0" : "")}>
-          <Button asChild className="w-full">
+          <Button asChild className={`w-full ${currentTheme.primary} border-0 text-white hover:opacity-90`}>
             <Link href={tutor.contact}>Contact</Link>
           </Button>
         </CardFooter>

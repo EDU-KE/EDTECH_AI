@@ -19,10 +19,12 @@ import { useAuth } from "@/lib/auth-context";
 import { getUserProfile, needsCurriculumSelection, type UserProfile } from "@/lib/auth";
 import { useCurriculum } from "@/components/CurriculumContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useCurriculumTheme } from "@/hooks/use-curriculum-theme";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { showModal } = useCurriculum();
+  const { theme, curriculumInfo } = useCurriculumTheme();
   const [enrolledSubjects, setEnrolledSubjects] = useState<Subject[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [analysis, setAnalysis] = useState<string | null>(null);
@@ -122,9 +124,9 @@ export default function Dashboard() {
   return (
     <AppShell title="Dashboard">
         {showCurriculumReminder && (
-            <Alert className="mb-6 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
-                <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                <AlertDescription className="text-orange-800 dark:text-orange-200">
+            <Alert className={`mb-6 ${theme?.secondary || 'bg-orange-50'} ${theme?.border || 'border-orange-200'} dark:${theme?.secondary || 'bg-orange-950'} dark:${theme?.border || 'border-orange-800'}`}>
+                <AlertCircle className={`h-4 w-4 ${theme?.accent || 'text-orange-600'} dark:${theme?.accent || 'text-orange-400'}`} />
+                <AlertDescription className={`${theme?.accent || 'text-orange-800'} dark:${theme?.accent || 'text-orange-200'}`}>
                     <div className="flex items-center justify-between">
                         <span>Complete your curriculum selection to get personalized learning content.</span>
                         <div className="flex gap-2 ml-4">
@@ -132,7 +134,7 @@ export default function Dashboard() {
                                 size="sm" 
                                 variant="outline"
                                 onClick={() => setShowCurriculumReminder(false)}
-                                className="border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-700 dark:text-orange-300 dark:hover:bg-orange-900"
+                                className={`${theme?.border || 'border-orange-300'} ${theme?.accent || 'text-orange-700'} ${theme?.hover || 'hover:bg-orange-100'} dark:${theme?.border || 'border-orange-700'} dark:${theme?.accent || 'text-orange-300'} dark:${theme?.hover || 'hover:bg-orange-900'}`}
                             >
                                 Remind Later
                             </Button>
@@ -142,7 +144,7 @@ export default function Dashboard() {
                                     setShowCurriculumReminder(false);
                                     showModal();
                                 }}
-                                className="bg-orange-600 hover:bg-orange-700 text-white"
+                                className={`${theme?.primary || 'bg-orange-600 hover:bg-orange-700'} text-white border-0`}
                             >
                                 Complete Setup
                             </Button>

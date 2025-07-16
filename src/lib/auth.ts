@@ -365,6 +365,11 @@ export const deleteUserAccount = async () => {
 export const updateUserCurriculum = async (curriculum: 'CBE' | '8-4-4' | 'IGCSE', gradeLevel?: string) => {
   if (isDemoMode) {
     console.log('🚀 Demo Mode: Curriculum update simulation');
+    // Even in demo mode, we want to trigger theme updates
+    if (typeof window !== 'undefined') {
+      const { triggerCurriculumChange } = await import('@/hooks/use-curriculum-theme');
+      triggerCurriculumChange();
+    }
     return;
   }
   
@@ -389,6 +394,12 @@ export const updateUserCurriculum = async (curriculum: 'CBE' | '8-4-4' | 'IGCSE'
     await setDoc(doc(db, 'users', user.uid), cleanedData, { merge: true });
     
     console.log('User curriculum updated successfully');
+    
+    // Trigger theme refresh for all components using the theme hook
+    if (typeof window !== 'undefined') {
+      const { triggerCurriculumChange } = await import('@/hooks/use-curriculum-theme');
+      triggerCurriculumChange();
+    }
   } catch (error: any) {
     console.error('Error updating user curriculum:', error);
     throw new Error(error.message || 'Failed to update curriculum. Please try again.');
@@ -401,7 +412,7 @@ export const needsCurriculumSelection = (profile: UserProfile | null): boolean =
   return !profile.curriculumSelected || !profile.curriculum;
 };
 
-// Get curriculum info
+// Get curriculum info with enhanced themes
 export const getCurriculumInfo = (curriculum: 'CBE' | '8-4-4' | 'IGCSE') => {
   const curriculumData = {
     'CBE': {
@@ -409,21 +420,54 @@ export const getCurriculumInfo = (curriculum: 'CBE' | '8-4-4' | 'IGCSE') => {
       description: 'Modern competency-based curriculum focusing on practical skills and real-world applications.',
       grades: ['Pre-Primary 1', 'Pre-Primary 2', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Junior Secondary 1', 'Junior Secondary 2', 'Junior Secondary 3'],
       subjects: ['English', 'Kiswahili', 'Mathematics', 'Science & Technology', 'Social Studies', 'Creative Arts', 'Physical Education', 'Life Skills'],
-      icon: '🎯'
+      icon: '🎯',
+      theme: {
+        primary: 'bg-gradient-to-br from-purple-500 to-pink-500',
+        secondary: 'bg-purple-50 dark:bg-purple-950/20',
+        accent: 'text-purple-700 dark:text-purple-300',
+        border: 'border-purple-200 dark:border-purple-800',
+        ring: 'ring-purple-500',
+        badge: 'bg-purple-100 text-purple-800 dark:bg-purple-800 dark:text-purple-100',
+        hover: 'hover:bg-purple-100 dark:hover:bg-purple-900/20'
+      },
+      features: ['Skills-based learning', 'Real-world applications', 'Project-based assessment', 'Competency tracking'],
+      modernFeatures: true
     },
     '8-4-4': {
       name: '8-4-4 System',
       description: 'Traditional Kenyan education system with 8 years primary, 4 years secondary, and 4 years university.',
       grades: ['Standard 1', 'Standard 2', 'Standard 3', 'Standard 4', 'Standard 5', 'Standard 6', 'Standard 7', 'Standard 8', 'Form 1', 'Form 2', 'Form 3', 'Form 4'],
       subjects: ['English', 'Kiswahili', 'Mathematics', 'Science', 'Social Studies', 'Christian Religious Education', 'Art & Craft', 'Music', 'Physical Education'],
-      icon: '📚'
+      icon: '📚',
+      theme: {
+        primary: 'bg-gradient-to-br from-green-500 to-teal-500',
+        secondary: 'bg-green-50 dark:bg-green-950/20',
+        accent: 'text-green-700 dark:text-green-300',
+        border: 'border-green-200 dark:border-green-800',
+        ring: 'ring-green-500',
+        badge: 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100',
+        hover: 'hover:bg-green-100 dark:hover:bg-green-900/20'
+      },
+      features: ['Structured learning path', 'Traditional assessments', 'Foundation focused', 'Time-tested approach'],
+      modernFeatures: false
     },
     'IGCSE': {
       name: 'International General Certificate of Secondary Education',
       description: 'Internationally recognized qualification for students aged 14-16, preparing for advanced studies.',
       grades: ['Year 9', 'Year 10', 'Year 11', 'AS Level', 'A Level'],
       subjects: ['English Language', 'English Literature', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography', 'Economics', 'Business Studies', 'Art & Design'],
-      icon: '🌍'
+      icon: '🌍',
+      theme: {
+        primary: 'bg-gradient-to-br from-blue-500 to-cyan-500',
+        secondary: 'bg-blue-50 dark:bg-blue-950/20',
+        accent: 'text-blue-700 dark:text-blue-300',
+        border: 'border-blue-200 dark:border-blue-800',
+        ring: 'ring-blue-500',
+        badge: 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100',
+        hover: 'hover:bg-blue-100 dark:hover:bg-blue-900/20'
+      },
+      features: ['Global recognition', 'University preparation', 'Flexible subject choice', 'International standards'],
+      modernFeatures: true
     }
   };
   

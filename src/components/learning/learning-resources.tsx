@@ -20,6 +20,7 @@ import {
   Link,
   Tag
 } from "lucide-react"
+import { useCurriculumTheme, getThemeOrDefault } from '@/hooks/use-curriculum-theme'
 
 interface LearningResource {
   id: string
@@ -52,6 +53,8 @@ export function LearningResources({
   onResourceClick, 
   onDownload 
 }: LearningResourcesProps) {
+  const { theme } = useCurriculumTheme();
+  const currentTheme = getThemeOrDefault(theme);
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSubject, setSelectedSubject] = useState<string>('all')
   const [selectedType, setSelectedType] = useState<string>('all')
@@ -117,18 +120,18 @@ export function LearningResources({
     const Icon = getResourceIcon(resource.type)
     
     return (
-      <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => onResourceClick(resource)}>
+      <Card className={`hover:shadow-lg transition-all duration-300 cursor-pointer border-2 ${currentTheme.border} ${currentTheme.hover}`} onClick={() => onResourceClick(resource)}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Icon className="h-4 w-4 text-primary" />
+              <div className={`p-2 rounded-lg ${currentTheme.secondary}`}>
+                <Icon className={`h-4 w-4 ${currentTheme.accent}`} />
               </div>
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className={`text-xs ${currentTheme.badge}`}>
                 {resource.type}
               </Badge>
               {!resource.free && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className={`text-xs ${currentTheme.badge}`}>
                   Premium
                 </Badge>
               )}
@@ -138,7 +141,7 @@ export function LearningResources({
               {resource.rating}
             </div>
           </div>
-          <CardTitle className="text-base leading-tight line-clamp-2">
+          <CardTitle className={`text-base leading-tight line-clamp-2 ${currentTheme.accent}`}>
             {resource.title}
           </CardTitle>
         </CardHeader>
@@ -149,7 +152,7 @@ export function LearningResources({
           
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <Badge className={getDifficultyColor(resource.difficulty)} variant="outline">
+              <Badge className={`${getDifficultyColor(resource.difficulty)} ${currentTheme.badge}`} variant="outline">
                 {resource.difficulty}
               </Badge>
               <div className="flex items-center gap-1 text-muted-foreground">
@@ -165,12 +168,12 @@ export function LearningResources({
           {resource.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {resource.tags.slice(0, 3).map(tag => (
-                <Badge key={tag} variant="secondary" className="text-xs">
+                <Badge key={tag} variant="secondary" className={`text-xs ${currentTheme.badge}`}>
                   {tag}
                 </Badge>
               ))}
               {resource.tags.length > 3 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className={`text-xs ${currentTheme.badge}`}>
                   +{resource.tags.length - 3}
                 </Badge>
               )}
@@ -178,7 +181,7 @@ export function LearningResources({
           )}
           
           <div className="flex gap-2 pt-2">
-            <Button size="sm" className="flex-1" onClick={(e) => {
+            <Button size="sm" className={`flex-1 ${currentTheme.primary} border-0 text-white hover:opacity-90`} onClick={(e) => {
               e.stopPropagation()
               onResourceClick(resource)
             }}>
@@ -189,6 +192,7 @@ export function LearningResources({
               <Button 
                 size="sm" 
                 variant="outline"
+                className={`${currentTheme.border} ${currentTheme.hover}`}
                 onClick={(e) => {
                   e.stopPropagation()
                   onDownload(resource)
@@ -209,7 +213,7 @@ export function LearningResources({
       {/* Search and Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className={`flex items-center gap-2 ${currentTheme.accent}`}>
             <BookOpen className="h-5 w-5" />
             Learning Resources
           </CardTitle>
@@ -304,7 +308,7 @@ export function LearningResources({
             <div className="text-sm text-muted-foreground">
               {filteredResources.length} resources found
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className={`${currentTheme.border} ${currentTheme.hover}`}>
               <Filter className="h-4 w-4 mr-2" />
               More Filters
             </Button>
