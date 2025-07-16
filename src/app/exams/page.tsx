@@ -5,7 +5,8 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Bot, FileQuestion, Loader2, Sparkles, Upload, MoreVertical, BrainCircuit, Computer, Pencil } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Bot, FileQuestion, Loader2, Sparkles, Upload, MoreVertical, BrainCircuit, Computer, Pencil, Play } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ const questionTypeOptions = [
 ]
 
 export default function ExamsRevisionPage() {
+    const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [isExplanationPending, startExplanationTransition] = useTransition();
     const [isGradingPending, startGradingTransition] = useTransition();
@@ -191,10 +193,24 @@ export default function ExamsRevisionPage() {
                                                     {subjectExams.map((exam) => (
                                                         <TableRow key={exam.id}>
                                                             <TableCell>{exam.topic}</TableCell>
-                                                            <TableCell className="font-medium">{exam.title}</TableCell>
+                                                            <TableCell className="font-medium">
+                                                                <button 
+                                                                    onClick={() => router.push(`/exams/${exam.id}`)}
+                                                                    className="text-left hover:text-primary hover:underline transition-colors"
+                                                                >
+                                                                    {exam.title}
+                                                                </button>
+                                                            </TableCell>
                                                             <TableCell><Badge variant="secondary">{exam.isoId}</Badge></TableCell>
                                                             <TableCell>{exam.duration}</TableCell>
                                                             <TableCell className="text-right space-x-2">
+                                                                <Button 
+                                                                    variant="default" 
+                                                                    size="sm" 
+                                                                    onClick={() => router.push(`/exams/${exam.id}`)}
+                                                                >
+                                                                    <Play className="mr-2 h-4 w-4" /> Take Exam
+                                                                </Button>
                                                                 <Button variant="outline" size="sm" onClick={() => handleAnalyzeExam(exam)}>
                                                                     <Bot className="mr-2 h-4 w-4" /> Analyze
                                                                 </Button>
