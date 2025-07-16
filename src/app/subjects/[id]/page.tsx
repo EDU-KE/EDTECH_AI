@@ -311,7 +311,7 @@ export default function SubjectPage() {
                                                             <div>
                                                                 <h2 className="text-xl font-bold text-primary mb-4">{selectedSession.slides[currentSlide].title}</h2>
                                                                 <ul className="space-y-3 list-disc pl-5">
-                                                                    {selectedSession.slides[currentSlide].content.map((point, i) => (
+                                                                    {selectedSession.slides[currentSlide].content.map((point: string, i: number) => (
                                                                         <li key={i} className="text-base">{point}</li>
                                                                     ))}
                                                                 </ul>
@@ -331,7 +331,7 @@ export default function SubjectPage() {
                                                             <div className="w-full flex flex-col">
                                                                 <h2 className="text-xl font-bold text-primary mb-4">Quiz Time!</h2>
                                                                 <div className="space-y-6">
-                                                                    {selectedSession.questions.map((q, index) => (
+                                                                    {selectedSession.questions.map((q: any, index: number) => (
                                                                         <div key={index} className="prose prose-sm max-w-none dark:prose-invert">
                                                                             <p><strong>{index + 1}. {q.questionText}</strong></p>
                                                                             <p className="text-primary"><strong>Answer:</strong> {q.answer}</p>
@@ -393,10 +393,21 @@ export default function SubjectPage() {
                                 {subjectExams.slice(0, 2).map(exam => (
                                     <li key={exam.id} className="flex justify-between items-center text-sm">
                                     <div>
-                                        <p className="font-medium">{exam.title}</p>
+                                        <button 
+                                            onClick={() => router.push(`/exams/${exam.id}`)}
+                                            className="text-left hover:text-primary hover:underline transition-colors"
+                                        >
+                                            <p className="font-medium">{exam.title}</p>
+                                        </button>
                                         <p className="text-muted-foreground text-xs">{exam.duration}</p>
                                     </div>
-                                    <Button variant="outline" size="sm" onClick={() => setActiveTab('exams')}>Start</Button>
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={() => router.push(`/exams/${exam.id}`)}
+                                    >
+                                        Start
+                                    </Button>
                                     </li>
                                 ))}
                                 </ul>
@@ -541,10 +552,23 @@ export default function SubjectPage() {
                     <TableBody>
                     {subjectExams.map((exam) => (
                         <TableRow key={exam.id}>
-                        <TableCell className="font-medium">{exam.title}</TableCell>
+                        <TableCell className="font-medium">
+                            <button 
+                                onClick={() => router.push(`/exams/${exam.id}`)}
+                                className="text-left hover:text-primary hover:underline transition-colors"
+                            >
+                                {exam.title}
+                            </button>
+                        </TableCell>
                         <TableCell>{exam.duration}</TableCell>
                         <TableCell className="text-right">
-                            <Button variant="outline" size="sm">Start Quiz</Button>
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => router.push(`/exams/${exam.id}`)}
+                            >
+                                Start Quiz
+                            </Button>
                         </TableCell>
                         </TableRow>
                     ))}

@@ -467,7 +467,7 @@ export const getMaterialsByGrade = () => {
 
 
 // We need a type that matches the output of the generate-presentation flow
-type SavedClassSession = Omit<GeneratePresentationOutput, "isoId"> & { 
+export type SavedClassSession = Omit<GeneratePresentationOutput, "isoId"> & { 
     id: string;
     isoId: string;
     subject: string;
