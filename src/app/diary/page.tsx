@@ -15,6 +15,7 @@ import { getDiaryAdvice } from "@/lib/actions"
 import debounce from "lodash/debounce"
 import { useCurriculumTheme } from "@/hooks/use-curriculum-theme"
 import { Badge } from "@/components/ui/badge"
+import { componentCache } from "@/lib/cache/cache-utility"
 
 const initialEvents: TimetableEvent[] = [
     { id: '1', title: 'Math Study Session', startTime: setMinutes(setHours(new Date(), 10), 0), endTime: setMinutes(setHours(new Date(), 11), 30) },
@@ -31,8 +32,27 @@ export default function DiaryPage() {
     const [isAiPending, startAiTransition] = useTransition()
     const { theme, curriculum, curriculumInfo, isLoading } = useCurriculumTheme()
 
+    // Memoized cache key for diary data
+    const diaryDataKey = useMemo(() => 
+        `diary_data_${curriculum || 'default'}`, 
+        [curriculum]
+    )
+
+    // Cached AI advice fetch
     const fetchAIAdvice = useCallback(
         debounce((plan: string) => {
+          const cacheKey = `ai_advice_${plan.substring(0, 100)}`;
+          
+          // Check cache first
+          const cachedAdvice = componentCache.get(cacheKey);
+          if (cachedAdvice) {
+            const adviceContainer = document.getElementById("ai-advice-container");
+            if (adviceContainer) {
+              adviceContainer.innerHTML = cachedAdvice;
+            }
+            return;
+          }
+
           startAiTransition(async () => {
             const adviceContainer = document.getElementById("ai-advice-container");
             if (!adviceContainer) return;
@@ -51,16 +71,21 @@ export default function DiaryPage() {
             const result = await getDiaryAdvice(formData);
   
             if (result.error) {
-              adviceContainer.innerHTML = `<p class="text-destructive-foreground">${result.error}</p>`;
+              const errorContent = `<p class="text-destructive-foreground">${result.error}</p>`;
+              adviceContainer.innerHTML = errorContent;
             } else {
-               adviceContainer.innerHTML = `<div class="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap font-body w-full">${result.advice}</div>`;
+               const adviceContent = `<div class="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap font-body w-full">${result.advice}</div>`;
+               adviceContainer.innerHTML = adviceContent;
+               // Cache the successful response
+               componentCache.set(cacheKey, adviceContent, 10 * 60 * 1000); // Cache for 10 minutes
             }
           });
         }, 1000),
       [startAiTransition, theme]
     );
 
-    const handleSaveEntry = (data: DiaryEntryData) => {
+    // Optimized event handling with caching
+    const handleSaveEntry = useCallback((data: DiaryEntryData) => {
         setIsShowingSaved(false)
         const newEvent: TimetableEvent = {
             id: (events.length + 1).toString(),
@@ -68,7 +93,11 @@ export default function DiaryPage() {
             startTime: data.dateTime,
             endTime: addDays(data.dateTime, 0), // Placeholder end time
         }
-        setEvents([...events, newEvent])
+        const updatedEvents = [...events, newEvent];
+        setEvents(updatedEvents);
+
+        // Cache the updated events
+        componentCache.set(`${diaryDataKey}_events`, updatedEvents, 5 * 60 * 1000);
 
         toast({
             title: "Activity Scheduled!",
@@ -81,15 +110,15 @@ export default function DiaryPage() {
                 description: `Your scheduled activity "${data.activity}" is starting soon.`,
             })
         }, 5000)
-    }
+    }, [events, diaryDataKey, toast]);
 
-    const handleViewSaved = () => {
+    const handleViewSaved = useCallback(() => {
         setIsShowingSaved(true)
         const adviceContainer = document.getElementById("ai-advice-container");
         if (adviceContainer) {
             adviceContainer.innerHTML = `<div class="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap font-body w-full">${mockSavedEntry}</div>`
         }
-    }
+    }, []);
 
   return (
     <AppShell title="Digital Diary & Planner">
