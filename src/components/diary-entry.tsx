@@ -4,7 +4,7 @@
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Calendar as CalendarIcon, Clock, Loader2, Save, FolderClock } from "lucide-react"
+import { Calendar as CalendarIcon, Clock, Loader2, Save, FolderClock, PenTool, CheckCircle } from "lucide-react"
 import { format, set } from "date-fns"
 import { useTransition, useEffect } from "react"
 import { addDays } from "date-fns"
@@ -16,7 +16,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { useCurriculumTheme } from "@/hooks/use-curriculum-theme"
 
 export const diaryEntrySchema = z.object({
   notes: z.string().min(10, "Please enter at least 10 characters for your notes."),
@@ -35,6 +37,7 @@ interface DiaryEntryProps {
 
 export function DiaryEntry({ onSave, onViewSaved, onPlanChange }: DiaryEntryProps) {
     const [isPending, startTransition] = useTransition()
+    const { theme, curriculum, curriculumInfo, isLoading } = useCurriculumTheme()
     
     const form = useForm<DiaryEntryData>({
         resolver: zodResolver(diaryEntrySchema),
@@ -74,24 +77,36 @@ export function DiaryEntry({ onSave, onViewSaved, onPlanChange }: DiaryEntryProp
     }
 
   return (
-    <Card>
-        <CardHeader>
-            <CardTitle>New Diary Entry</CardTitle>
-            <CardDescription>Log your thoughts and schedule activities. AI will provide tips as you type.</CardDescription>
+    <Card className={`border-2 ${theme?.border || 'border-gray-200'} ${theme?.hover || 'hover:shadow-md'} transition-all duration-200`}>
+        <CardHeader className={`${theme?.secondary || 'bg-gray-50'} border-b`}>
+            <CardTitle className={`flex items-center gap-2 ${theme?.accent || 'text-gray-900'}`}>
+                <PenTool className={`h-5 w-5 ${theme?.accent || 'text-gray-600'}`} />
+                New Diary Entry
+                {curriculum && (
+                    <Badge variant="outline" className={`ml-2 ${theme?.badge || 'bg-gray-100'}`}>
+                        {curriculum}
+                    </Badge>
+                )}
+            </CardTitle>
+            <CardDescription>
+                Log your thoughts and schedule activities. {curriculumInfo ? `Tailored for ${curriculumInfo.name}` : 'AI will provide tips as you type.'}
+            </CardDescription>
         </CardHeader>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 p-6">
                     <FormField
                         control={form.control}
                         name="notes"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Today's Plan & Notes</FormLabel>
+                                <FormLabel className={`font-medium ${theme?.accent || 'text-gray-900'}`}>
+                                    Today's Plan & Notes
+                                </FormLabel>
                                 <FormControl>
                                     <Textarea
-                                        placeholder="What's on your mind? What do you need to do?"
-                                        className="resize-y min-h-[150px]"
+                                        placeholder="What's on your mind? What do you need to do today?"
+                                        className={`resize-y min-h-[150px] focus:ring-2 ${theme?.ring || 'focus:ring-gray-500'} ${theme?.border || 'border-gray-200'}`}
                                         {...field}
                                         onChange={handleNotesChange}
                                     />
@@ -100,33 +115,45 @@ export function DiaryEntry({ onSave, onViewSaved, onPlanChange }: DiaryEntryProp
                             </FormItem>
                         )}
                     />
+                    
                     <FormField
                         control={form.control}
                         name="activity"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Schedule a Task</FormLabel>
+                                <FormLabel className={`font-medium ${theme?.accent || 'text-gray-900'}`}>
+                                    Schedule a Task
+                                </FormLabel>
                                 <FormControl>
-                                    <Input placeholder="e.g., Study for Math Test" {...field} />
+                                    <Input 
+                                        placeholder="e.g., Study for Math Test, Review Biology Notes" 
+                                        className={`focus:ring-2 ${theme?.ring || 'focus:ring-gray-500'} ${theme?.border || 'border-gray-200'}`}
+                                        {...field} 
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
+                    
                      <FormField
                         control={form.control}
                         name="dateTime"
                         render={({ field }) => (
                         <FormItem className="flex flex-col">
-                            <FormLabel>Date & Time</FormLabel>
+                            <FormLabel className={`font-medium ${theme?.accent || 'text-gray-900'}`}>
+                                Date & Time
+                            </FormLabel>
                             <Popover>
                             <PopoverTrigger asChild>
                                 <FormControl>
                                 <Button
                                     variant={"outline"}
                                     className={cn(
-                                    "w-[240px] pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
+                                        "w-[240px] pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground",
+                                        theme?.border || 'border-gray-200',
+                                        theme?.hover || 'hover:bg-gray-50'
                                     )}
                                 >
                                     {field.value ? (
@@ -161,6 +188,7 @@ export function DiaryEntry({ onSave, onViewSaved, onPlanChange }: DiaryEntryProp
                                                         const newDate = set(timeField.value || new Date(), { hours, minutes });
                                                         timeField.onChange(newDate);
                                                     }}
+                                                    className={`focus:ring-2 ${theme?.ring || 'focus:ring-gray-500'}`}
                                                 />
                                             </div>
                                         )}
@@ -173,12 +201,25 @@ export function DiaryEntry({ onSave, onViewSaved, onPlanChange }: DiaryEntryProp
                         )}
                     />
                 </CardContent>
-                <CardFooter className="flex justify-between">
-                    <Button type="submit" disabled={isPending}>
-                        {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                <CardFooter className="flex justify-between p-6 pt-0">
+                    <Button 
+                        type="submit" 
+                        disabled={isPending}
+                        className={`${theme?.primary || 'bg-gray-900'} hover:opacity-90 text-white border-0`}
+                    >
+                        {isPending ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                        )}
                         Save & Schedule
                     </Button>
-                    <Button type="button" variant="outline" onClick={onViewSaved}>
+                    <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={onViewSaved}
+                        className={`${theme?.border || 'border-gray-200'} ${theme?.hover || 'hover:bg-gray-50'}`}
+                    >
                         <FolderClock className="mr-2 h-4 w-4" />
                         View Saved
                     </Button>

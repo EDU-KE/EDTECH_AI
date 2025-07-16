@@ -12,11 +12,17 @@ import {
 import { chartConfig, progressData, subjects } from "@/lib/mock-data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useTransition, useEffect, useMemo } from "react";
-import { Bot, Download, Loader2, Star, Target, TrendingUp, CheckCircle, BarChart as BarChartIcon, LineChart as LineChartIcon, PieChart as PieChartIcon } from "lucide-react";
+import { Bot, Download, Loader2, Star, Target, TrendingUp, CheckCircle, BarChart as BarChartIcon, LineChart as LineChartIcon, PieChart as PieChartIcon, Award, BookOpen, Calendar, Clock } from "lucide-react";
 import { getProgressInsights } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { useCurriculumTheme } from "@/hooks/use-curriculum-theme";
+import { ProgressGoals } from "@/components/progress-goals";
+import { LearningStreaks } from "@/components/learning-streaks";
+import { SubjectComparison } from "@/components/subject-comparison";
 
 type SubjectKey = keyof typeof progressData | 'all';
 type ChartType = "bar" | "line" | "pie";
@@ -37,6 +43,7 @@ export default function ProgressPage() {
     const [isInsightsPending, startInsightsTransition] = useTransition();
     const [chartType, setChartType] = useState<ChartType>("bar");
     const { toast } = useToast();
+    const { theme, curriculum, curriculumInfo, isLoading } = useCurriculumTheme();
 
     const subjectProgress = useMemo(() => {
         if (selectedSubject === 'all') {
@@ -168,24 +175,113 @@ export default function ProgressPage() {
 
   return (
     <AppShell title="Overall Progress">
+      {/* Header Section with Curriculum Theme */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`p-3 rounded-xl ${theme?.secondary || 'bg-gray-100'} border ${theme?.border || 'border-gray-200'}`}>
+              <TrendingUp className={`h-6 w-6 ${theme?.accent || 'text-gray-600'}`} />
+            </div>
+            <div>
+              <h1 className={`text-2xl font-bold ${theme?.accent || 'text-gray-900'}`}>
+                Learning Progress Dashboard
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {curriculumInfo ? `${curriculumInfo.name} Progress Analytics` : 'Track your academic journey'}
+              </p>
+            </div>
+          </div>
+          {curriculum && (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className={`${theme?.badge || 'bg-gray-100'}`}>
+                <div className="text-lg mr-1">{curriculumInfo?.icon}</div>
+                {curriculum}
+              </Badge>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Progress Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Card className={`border ${theme?.border || 'border-gray-200'} ${theme?.hover || 'hover:shadow-md'} transition-all duration-200`}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Overall Average</CardTitle>
+            <Target className={`h-4 w-4 ${theme?.accent || 'text-gray-600'}`} />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.average?.toFixed(1) || '0'}%</div>
+            <p className="text-xs text-muted-foreground">Across all subjects</p>
+          </CardContent>
+        </Card>
+        
+        <Card className={`border ${theme?.border || 'border-gray-200'} ${theme?.hover || 'hover:shadow-md'} transition-all duration-200`}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Best Performance</CardTitle>
+            <Award className={`h-4 w-4 ${theme?.accent || 'text-yellow-600'}`} />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.highest?.toFixed(1) || '0'}%</div>
+            <p className="text-xs text-muted-foreground">Highest score achieved</p>
+          </CardContent>
+        </Card>
+        
+        <Card className={`border ${theme?.border || 'border-gray-200'} ${theme?.hover || 'hover:shadow-md'} transition-all duration-200`}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Subjects</CardTitle>
+            <BookOpen className={`h-4 w-4 ${theme?.accent || 'text-blue-600'}`} />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{subjects.length}</div>
+            <p className="text-xs text-muted-foreground">Subjects in progress</p>
+          </CardContent>
+        </Card>
+        
+        <Card className={`border ${theme?.border || 'border-gray-200'} ${theme?.hover || 'hover:shadow-md'} transition-all duration-200`}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Study Period</CardTitle>
+            <Calendar className={`h-4 w-4 ${theme?.accent || 'text-green-600'}`} />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{subjectProgress.length}</div>
+            <p className="text-xs text-muted-foreground">Months tracked</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
-            <Card>
-            <CardHeader>
+            <Card className={`border-2 ${theme?.border || 'border-gray-200'} ${theme?.hover || 'hover:shadow-md'} transition-all duration-200`}>
+            <CardHeader className={`${theme?.secondary || 'bg-gray-50'} border-b`}>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
                     <div>
-                        <CardTitle>Overall Learner Progress</CardTitle>
-                        <CardDescription>Your progress across different subjects.</CardDescription>
+                        <CardTitle className={`flex items-center gap-2 ${theme?.accent || 'text-gray-900'}`}>
+                            <TrendingUp className={`h-5 w-5 ${theme?.accent || 'text-gray-600'}`} />
+                            Progress Analytics
+                        </CardTitle>
+                        <CardDescription>Your progress across different subjects and time periods</CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
-                        <ToggleGroup type="single" value={chartType} onValueChange={(value: ChartType) => value && setChartType(value)} aria-label="Chart type">
-                            <ToggleGroupItem value="bar" aria-label="Bar chart"><BarChartIcon className="h-4 w-4" /></ToggleGroupItem>
-                            <ToggleGroupItem value="line" aria-label="Line chart"><LineChartIcon className="h-4 w-4" /></ToggleGroupItem>
-                            <ToggleGroupItem value="pie" aria-label="Pie chart"><PieChartIcon className="h-4 w-4" /></ToggleGroupItem>
+                        <ToggleGroup 
+                            type="single" 
+                            value={chartType} 
+                            onValueChange={(value: ChartType) => value && setChartType(value)} 
+                            aria-label="Chart type"
+                            className={`${theme?.border || 'border-gray-200'}`}
+                        >
+                            <ToggleGroupItem value="bar" aria-label="Bar chart">
+                                <BarChartIcon className="h-4 w-4" />
+                            </ToggleGroupItem>
+                            <ToggleGroupItem value="line" aria-label="Line chart">
+                                <LineChartIcon className="h-4 w-4" />
+                            </ToggleGroupItem>
+                            <ToggleGroupItem value="pie" aria-label="Pie chart">
+                                <PieChartIcon className="h-4 w-4" />
+                            </ToggleGroupItem>
                         </ToggleGroup>
                         <div className="w-full sm:w-[180px]">
                             <Select value={selectedSubject} onValueChange={(value) => setSelectedSubject(value as SubjectKey)}>
-                                <SelectTrigger>
+                                <SelectTrigger className={`${theme?.border || 'border-gray-200'} ${theme?.hover || 'hover:bg-gray-50'}`}>
                                     <SelectValue placeholder="Select Subject" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -199,24 +295,27 @@ export default function ProgressPage() {
                     </div>
                 </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
                 <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
                     {renderChart()}
                 </ChartContainer>
             </CardContent>
             </Card>
-            <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-                <Bot className="h-6 w-6 text-primary" />
-                <div>
-                    <CardTitle>AI-Powered Insights</CardTitle>
-                    <CardDescription>Personalized feedback on your learning patterns for {currentSubjectTitle}.</CardDescription>
+            
+            <Card className={`border-2 ${theme?.border || 'border-gray-200'} ${theme?.hover || 'hover:shadow-md'} transition-all duration-200`}>
+            <CardHeader className={`${theme?.secondary || 'bg-gray-50'} border-b`}>
+                <div className="flex items-center gap-4">
+                    <Bot className={`h-6 w-6 ${theme?.accent || 'text-primary'}`} />
+                    <div>
+                        <CardTitle className={`${theme?.accent || 'text-gray-900'}`}>AI-Powered Insights</CardTitle>
+                        <CardDescription>Personalized feedback on your learning patterns for {currentSubjectTitle}</CardDescription>
+                    </div>
                 </div>
             </CardHeader>
-            <CardContent className="min-h-[80px]">
+            <CardContent className="min-h-[80px] p-6">
                 {isInsightsPending && selectedSubject !== 'all' && (
                     <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <Loader2 className={`h-5 w-5 animate-spin ${theme?.accent || 'text-primary'}`} />
                     <p>Analyzing your progress...</p>
                     </div>
                 )}
@@ -232,48 +331,66 @@ export default function ProgressPage() {
             </Card>
         </div>
         <div className="space-y-4">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Chart Actions</CardTitle>
-                    <CardDescription>Analyze your performance further.</CardDescription>
+            <Card className={`border ${theme?.border || 'border-gray-200'} ${theme?.hover || 'hover:shadow-md'} transition-all duration-200`}>
+                <CardHeader className={`${theme?.secondary || 'bg-gray-50'} border-b`}>
+                    <CardTitle className={`${theme?.accent || 'text-gray-900'}`}>Quick Actions</CardTitle>
+                    <CardDescription>Analyze your performance further</CardDescription>
                 </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-2">
-                    <Button onClick={handleShowTopSubject} variant="outline">
+                <CardContent className="grid grid-cols-1 gap-3 p-4">
+                    <Button 
+                        onClick={handleShowTopSubject} 
+                        variant="outline"
+                        className={`${theme?.border || 'border-gray-200'} ${theme?.hover || 'hover:bg-gray-50'}`}
+                    >
                         <Star className="mr-2 h-4 w-4" /> Show Top Subject
                     </Button>
-                     <Button onClick={() => toast({ title: "Generating Report...", description: "Your report will be downloaded shortly." })}>
+                     <Button 
+                        onClick={() => toast({ title: "Generating Report...", description: "Your report will be downloaded shortly." })}
+                        className={`${theme?.primary || 'bg-gray-900'} hover:opacity-90 text-white border-0`}
+                    >
                         <Download className="mr-2 h-4 w-4" /> Download Report
                     </Button>
                 </CardContent>
             </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Data Insights</CardTitle>
-                    <CardDescription>Key statistics for {currentSubjectTitle}.</CardDescription>
+            
+            <Card className={`border ${theme?.border || 'border-gray-200'} ${theme?.hover || 'hover:shadow-md'} transition-all duration-200`}>
+                <CardHeader className={`${theme?.secondary || 'bg-gray-50'} border-b`}>
+                    <CardTitle className={`${theme?.accent || 'text-gray-900'}`}>Performance Metrics</CardTitle>
+                    <CardDescription>Key statistics for {currentSubjectTitle}</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 p-4">
                     {stats ? (
                         <>
-                            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                                <div className="flex items-center gap-3">
-                                    <Target className="h-5 w-5 text-primary" />
-                                    <span className="font-medium">Average Progress</span>
+                            <div className={`p-3 rounded-lg ${theme?.secondary || 'bg-gray-50'} border ${theme?.border || 'border-gray-200'}`}>
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-3">
+                                        <Target className={`h-5 w-5 ${theme?.accent || 'text-primary'}`} />
+                                        <span className="font-medium">Average Progress</span>
+                                    </div>
+                                    <span className="font-bold text-lg">{stats.average.toFixed(1)}%</span>
                                 </div>
-                                <span className="font-bold text-lg">{stats.average.toFixed(1)}%</span>
+                                <Progress value={stats.average} className="h-2" />
                             </div>
-                            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                                <div className="flex items-center gap-3">
-                                    <TrendingUp className="h-5 w-5 text-primary" />
-                                    <span className="font-medium">Highest Score</span>
+                            <div className={`p-3 rounded-lg ${theme?.secondary || 'bg-gray-50'} border ${theme?.border || 'border-gray-200'}`}>
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-3">
+                                        <TrendingUp className={`h-5 w-5 ${theme?.accent || 'text-primary'}`} />
+                                        <span className="font-medium">Highest Score</span>
+                                    </div>
+                                    <span className="font-bold text-lg">{stats.highest.toFixed(1)}%</span>
                                 </div>
-                                <span className="font-bold text-lg">{stats.highest.toFixed(1)}%</span>
+                                <Progress value={stats.highest} className="h-2" />
                             </div>
-                             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                                <div className="flex items-center gap-3">
-                                    <CheckCircle className="h-5 w-5 text-primary" />
-                                    <span className="font-medium">Best Month</span>
+                             <div className={`p-3 rounded-lg ${theme?.secondary || 'bg-gray-50'} border ${theme?.border || 'border-gray-200'}`}>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <CheckCircle className={`h-5 w-5 ${theme?.accent || 'text-primary'}`} />
+                                        <span className="font-medium">Best Month</span>
+                                    </div>
+                                    <Badge variant="secondary" className={`${theme?.badge || 'bg-gray-100'}`}>
+                                        {stats.bestMonth}
+                                    </Badge>
                                 </div>
-                                <span className="font-bold text-lg">{stats.bestMonth}</span>
                             </div>
                         </>
                     ) : (
@@ -282,6 +399,17 @@ export default function ProgressPage() {
                 </CardContent>
             </Card>
         </div>
+      </div>
+      
+      {/* Additional Progress Components */}
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <ProgressGoals />
+        <LearningStreaks />
+      </div>
+      
+      {/* Subject Comparison */}
+      <div className="mt-8">
+        <SubjectComparison />
       </div>
     </AppShell>
   );
