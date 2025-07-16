@@ -366,7 +366,7 @@ export default function ProgressPage() {
             <CardHeader className={`${theme?.secondary || 'bg-gray-50'} border-b`}>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-xl ${theme?.primary || 'bg-gradient-to-br from-blue-500 to-purple-500'} text-white shadow-lg`}>
+                        <div className={`p-3 rounded-xl ${curriculum === '8-4-4' ? 'bg-gradient-to-br from-green-500 to-teal-500' : (theme?.primary || 'bg-gradient-to-br from-blue-500 to-purple-500')} text-white shadow-lg`}>
                             <Bot className="h-6 w-6" />
                         </div>
                         <div>
@@ -375,23 +375,33 @@ export default function ProgressPage() {
                                 <Badge variant="secondary" className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs">
                                     SMART
                                 </Badge>
+                                {curriculum === '8-4-4' && (
+                                    <Badge variant="outline" className="bg-gradient-to-r from-green-100 to-teal-100 text-green-700 border-green-200 text-xs">
+                                        📚 8-4-4
+                                    </Badge>
+                                )}
                             </CardTitle>
-                            <CardDescription>Personalized feedback on your learning patterns for {currentSubjectTitle}</CardDescription>
+                            <CardDescription>
+                                {curriculum === '8-4-4' 
+                                    ? `📚 Traditional curriculum insights for ${currentSubjectTitle}` 
+                                    : `Personalized feedback on your learning patterns for ${currentSubjectTitle}`
+                                }
+                            </CardDescription>
                         </div>
                     </div>
-                    {selectedSubject !== 'all' && (
+                    {(selectedSubject !== 'all' || curriculum === '8-4-4') && (
                         <Button 
-                            onClick={() => fetchInsightsOptimized(selectedSubject)}
+                            onClick={() => fetchInsightsOptimized(selectedSubject === 'all' ? 'Mathematics' : selectedSubject)}
                             disabled={isInsightsPending}
                             size="sm"
-                            className={`${theme?.primary || 'bg-gradient-to-r from-blue-500 to-purple-500'} hover:opacity-90 text-white shadow-lg border-0`}
+                            className={`${curriculum === '8-4-4' ? 'bg-gradient-to-r from-green-500 to-teal-500' : (theme?.primary || 'bg-gradient-to-r from-blue-500 to-purple-500')} hover:opacity-90 text-white shadow-lg border-0`}
                         >
                             {isInsightsPending ? (
                                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                             ) : (
                                 <Bot className="h-4 w-4 mr-2" />
                             )}
-                            {isInsightsPending ? 'Analyzing...' : 'Analyze'}
+                            {isInsightsPending ? 'Analyzing...' : (curriculum === '8-4-4' ? '📚 Analyze' : 'Analyze')}
                         </Button>
                     )}
                 </div>
@@ -408,23 +418,28 @@ export default function ProgressPage() {
                         {insights}
                     </div>
                 )}
-                {!isInsightsPending && !insights && selectedSubject !== 'all' && (
+                {!isInsightsPending && !insights && (selectedSubject !== 'all' || curriculum === '8-4-4') && (
                     <div className="text-center py-8">
                         <div className={`inline-flex p-4 rounded-full ${theme?.secondary || 'bg-gray-50'} mb-4`}>
                             <Bot className={`h-8 w-8 ${theme?.accent || 'text-gray-600'}`} />
                         </div>
-                        <p className="text-sm text-muted-foreground mb-4">Click "Analyze" to get AI-powered insights for {currentSubjectTitle}</p>
+                        <p className="text-sm text-muted-foreground mb-4">
+                            {curriculum === '8-4-4' 
+                                ? `📚 Click "Analyze" to get AI-powered insights for ${currentSubjectTitle} in the 8-4-4 System`
+                                : `Click "Analyze" to get AI-powered insights for ${currentSubjectTitle}`
+                            }
+                        </p>
                         <Button 
-                            onClick={() => fetchInsightsOptimized(selectedSubject)}
+                            onClick={() => fetchInsightsOptimized(selectedSubject === 'all' ? 'Mathematics' : selectedSubject)}
                             size="lg"
-                            className={`${theme?.primary || 'bg-gradient-to-r from-blue-500 to-purple-500'} hover:opacity-90 text-white border-0 shadow-lg`}
+                            className={`${curriculum === '8-4-4' ? 'bg-gradient-to-r from-green-500 to-teal-500' : (theme?.primary || 'bg-gradient-to-r from-blue-500 to-purple-500')} hover:opacity-90 text-white border-0 shadow-lg`}
                         >
                             <Bot className="h-5 w-5 mr-2" />
-                            Generate AI Insights
+                            {curriculum === '8-4-4' ? '📚 Generate 8-4-4 AI Insights' : 'Generate AI Insights'}
                         </Button>
                     </div>
                 )}
-                {selectedSubject === 'all' && (
+                {selectedSubject === 'all' && curriculum !== '8-4-4' && (
                     <div className="text-center py-4">
                         <p className="text-sm text-muted-foreground">Showing combined progress for all subjects. Select a specific subject to get detailed AI insights.</p>
                     </div>
@@ -446,20 +461,48 @@ export default function ProgressPage() {
                     >
                         <Star className="mr-2 h-4 w-4" /> Show Top Subject
                     </Button>
-                    {selectedSubject !== 'all' && (
+                    
+                    {/* AI Analyze Button - Always visible for 8-4-4 System */}
+                    {(selectedSubject !== 'all' || curriculum === '8-4-4') && (
                         <Button 
-                            onClick={() => fetchInsightsOptimized(selectedSubject)}
+                            onClick={() => fetchInsightsOptimized(selectedSubject === 'all' ? 'Mathematics' : selectedSubject)}
                             disabled={isInsightsPending}
-                            className={`${theme?.primary || 'bg-gradient-to-r from-blue-500 to-purple-500'} hover:opacity-90 text-white border-0 shadow-lg`}
+                            className={`${theme?.primary || 'bg-gradient-to-r from-blue-500 to-purple-500'} hover:opacity-90 text-white border-0 shadow-lg ${curriculum === '8-4-4' ? 'ring-2 ring-green-300 ring-offset-2' : ''}`}
                         >
                             {isInsightsPending ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
                                 <Bot className="mr-2 h-4 w-4" />
                             )}
-                            {isInsightsPending ? 'Analyzing...' : 'AI Analyze Subject'}
+                            {isInsightsPending ? 'Analyzing...' : (curriculum === '8-4-4' ? '📚 AI Analyze (8-4-4)' : 'AI Analyze Subject')}
                         </Button>
                     )}
+                    
+                    {/* Special 8-4-4 System AI Features */}
+                    {curriculum === '8-4-4' && (
+                        <div className="space-y-2">
+                            <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                <div className="text-lg">📚</div>
+                                <span>8-4-4 System AI Features</span>
+                            </div>
+                            <Button 
+                                onClick={() => {
+                                    toast({ 
+                                        title: "📚 8-4-4 Analysis", 
+                                        description: "Analyzing your traditional curriculum progress..." 
+                                    });
+                                    fetchInsightsOptimized('all');
+                                }}
+                                disabled={isInsightsPending}
+                                variant="outline"
+                                className="w-full bg-gradient-to-r from-green-50 to-teal-50 border-green-200 hover:from-green-100 hover:to-teal-100"
+                            >
+                                <Target className="mr-2 h-4 w-4 text-green-600" />
+                                Foundation Skills Analysis
+                            </Button>
+                        </div>
+                    )}
+                    
                      <Button 
                         onClick={() => toast({ title: "Generating Report...", description: "Your report will be downloaded shortly." })}
                         className={`${theme?.primary || 'bg-gray-900'} hover:opacity-90 text-white border-0`}
