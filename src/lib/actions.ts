@@ -1,6 +1,9 @@
 
 "use server"
 
+// Import handlebars compatibility layer
+import "./handlebars-compat";
+
 import { generatePersonalizedLearningPath } from "@/ai/flows/generate-personalized-learning-path"
 import { provideAiTutoring } from "@/ai/flows/provide-ai-tutoring"
 import { generateRecommendations, type GenerateRecommendationsOutput } from "@/ai/flows/generate-recommendations"

@@ -63,14 +63,19 @@ export default function Dashboard() {
     setSelectedSubject(subject);
     setAnalysis(null);
     startAnalysisTransition(async () => {
-        const formData = new FormData();
-        formData.append("subjectTitle", subject.title);
-        const result = await getSubjectAnalysis(formData);
-        if (result.error) {
-            toast({ variant: "destructive", title: "AI Analysis Error", description: result.error });
-            setSelectedSubject(null);
-        } else {
-            setAnalysis(result.analysis ?? "Could not load analysis.");
+        try {
+          const formData = new FormData();
+          formData.append("subjectTitle", subject.title);
+          const result = await getSubjectAnalysis(formData);
+          if (result.error) {
+              toast({ variant: "destructive", title: "AI Analysis Error", description: result.error });
+              setSelectedSubject(null);
+          } else {
+              setAnalysis(result.analysis ?? "Could not load analysis.");
+          }
+        } catch (error) {
+          console.error('Analysis error:', error);
+          setSelectedSubject(null);
         }
     });
   }, [toast]);

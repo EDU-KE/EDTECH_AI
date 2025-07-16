@@ -13,8 +13,7 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { getAuthInstance, db, isDemoMode } from './firebase';
 import { SessionManager, SessionData } from './session-manager-client';
 
-// Import diagnostic function for debugging
-import './diagnose-google-auth';
+// Diagnostic function removed to improve performance
 
 export interface User {
   uid: string;

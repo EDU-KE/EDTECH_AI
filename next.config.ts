@@ -19,7 +19,9 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Webpack configuration for Firebase
+  // External packages for server components
+  serverExternalPackages: ['handlebars', 'dotprompt', '@genkit-ai/core'],
+  // Webpack configuration for Firebase and GenKit AI
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -30,29 +32,50 @@ const nextConfig: NextConfig = {
       };
     }
     
-    // Handle handlebars module issue
+    // Handle ES modules compatibility for handlebars and genkit
+    config.externals = config.externals || [];
+    if (isServer) {
+      config.externals.push({
+        handlebars: 'commonjs handlebars',
+        'handlebars/runtime': 'commonjs handlebars/runtime',
+      });
+    }
+    
+    // Handle handlebars module issue with better transpilation
     config.module.rules.push({
       test: /\.js$/,
-      include: /node_modules\/handlebars/,
+      include: /node_modules\/(handlebars|dotprompt|@genkit-ai)/,
       use: {
         loader: 'babel-loader',
         options: {
-          presets: ['@babel/preset-env'],
+          presets: [
+            ['@babel/preset-env', {
+              targets: {
+                node: '18'
+              },
+              modules: 'commonjs'
+            }]
+          ],
           plugins: [
             ['@babel/plugin-transform-runtime', {
-              "regenerator": true
-            }]
+              regenerator: true
+            }],
+            ['@babel/plugin-transform-modules-commonjs']
           ]
         }
       }
     });
     
-    // Ignore handlebars require.extensions warnings
+    // Ignore module warnings
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),
       {
         module: /handlebars/,
         message: /require\.extensions/,
+      },
+      {
+        module: /genkit/,
+        message: /Module not found/,
       },
     ];
     
