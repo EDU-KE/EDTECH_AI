@@ -358,19 +358,193 @@ export interface OnlineTutor {
     id: string;
     name: string;
     specialty: string;
+    subjects: string[];
     rating: number;
+    reviews: number;
     avatar: string;
     hint: string;
     contact: string;
+    experience: string;
+    education: string;
+    hourlyRate: number;
+    availability: string;
+    language: string[];
+    bio: string;
+    achievements: string[];
+    isAvailable: boolean;
+    responseTime: string;
+    totalStudents: number;
 }
 
 export const onlineTutors: OnlineTutor[] = [
-    { id: 't1', name: 'Dr. Evelyn Reed', specialty: 'Mathematics', rating: 4.9, avatar: 'https://placehold.co/100x100.png', hint: 'female professor', contact: '#' },
-    { id: 't2', name: 'Mr. Samuel Chen', specialty: 'Biology', rating: 4.8, avatar: 'https://placehold.co/100x100.png', hint: 'male teacher', contact: '#' },
-    { id: 't3', name: 'Ms. Clara Oswald', specialty: 'English', rating: 4.9, avatar: 'https://placehold.co/100x100.png', hint: 'female teacher', contact: '#' },
-    { id: 't4', name: 'Dr. Kenji Tanaka', specialty: 'History', rating: 4.7, avatar: 'https://placehold.co/100x100.png', hint: 'male professor', contact: '#' },
-    { id: 't5', name: 'Prof. Anya Sharma', specialty: 'Chemistry', rating: 4.9, avatar: 'https://placehold.co/100x100.png', hint: 'female scientist', contact: '#' },
-    { id: 't6', name: 'Mr. Ben Carter', specialty: 'Physics', rating: 4.6, avatar: 'https://placehold.co/100x100.png', hint: 'friendly man', contact: '#' },
+    { 
+        id: 't1', 
+        name: 'Dr. Evelyn Reed', 
+        specialty: 'Mathematics', 
+        subjects: ['Mathematics', 'Statistics', 'Calculus', 'Algebra'],
+        rating: 4.9, 
+        reviews: 234,
+        avatar: 'https://placehold.co/100x100.png', 
+        hint: 'female professor', 
+        contact: '#',
+        experience: '8 years',
+        education: 'PhD in Mathematics, MIT',
+        hourlyRate: 45,
+        availability: 'Mon-Fri 9AM-5PM',
+        language: ['English', 'Spanish'],
+        bio: 'Passionate mathematics educator with expertise in advanced calculus and statistics. I help students build strong foundations and tackle complex mathematical concepts with confidence.',
+        achievements: ['Best Online Tutor 2023', 'PhD in Mathematics', '500+ Students Taught'],
+        isAvailable: true,
+        responseTime: '< 1 hour',
+        totalStudents: 456
+    },
+    { 
+        id: 't2', 
+        name: 'Mr. Samuel Chen', 
+        specialty: 'Biology', 
+        subjects: ['Biology', 'Biochemistry', 'Molecular Biology', 'Genetics'],
+        rating: 4.8, 
+        reviews: 189,
+        avatar: 'https://placehold.co/100x100.png', 
+        hint: 'male teacher', 
+        contact: '#',
+        experience: '6 years',
+        education: 'MSc in Biology, Stanford University',
+        hourlyRate: 40,
+        availability: 'Tue-Sat 2PM-8PM',
+        language: ['English', 'Mandarin'],
+        bio: 'Experienced biology tutor specializing in molecular biology and genetics. I make complex biological processes easy to understand through interactive teaching methods.',
+        achievements: ['Top Rated Tutor', 'Published Researcher', 'Excellence in Teaching Award'],
+        isAvailable: true,
+        responseTime: '< 2 hours',
+        totalStudents: 321
+    },
+    { 
+        id: 't3', 
+        name: 'Ms. Clara Oswald', 
+        specialty: 'English', 
+        subjects: ['English Literature', 'Creative Writing', 'Grammar', 'Essay Writing'],
+        rating: 4.9, 
+        reviews: 312,
+        avatar: 'https://placehold.co/100x100.png', 
+        hint: 'female teacher', 
+        contact: '#',
+        experience: '7 years',
+        education: 'MA in English Literature, Oxford University',
+        hourlyRate: 35,
+        availability: 'Mon-Sun 10AM-6PM',
+        language: ['English', 'French'],
+        bio: 'Creative and engaging English tutor with a passion for literature and writing. I help students develop strong communication skills and literary analysis abilities.',
+        achievements: ['Oxford Graduate', 'Published Author', 'Literary Award Winner'],
+        isAvailable: false,
+        responseTime: '< 3 hours',
+        totalStudents: 567
+    },
+    { 
+        id: 't4', 
+        name: 'Dr. Kenji Tanaka', 
+        specialty: 'History', 
+        subjects: ['World History', 'Asian History', 'Political Science', 'Cultural Studies'],
+        rating: 4.7, 
+        reviews: 156,
+        avatar: 'https://placehold.co/100x100.png', 
+        hint: 'male professor', 
+        contact: '#',
+        experience: '10 years',
+        education: 'PhD in History, Tokyo University',
+        hourlyRate: 42,
+        availability: 'Wed-Sun 1PM-7PM',
+        language: ['English', 'Japanese', 'Korean'],
+        bio: 'Historian with deep expertise in Asian history and political science. I bring historical events to life through engaging storytelling and critical analysis.',
+        achievements: ['Historical Research Award', 'International Conference Speaker', 'Cultural Heritage Expert'],
+        isAvailable: true,
+        responseTime: '< 4 hours',
+        totalStudents: 289
+    },
+    { 
+        id: 't5', 
+        name: 'Prof. Anya Sharma', 
+        specialty: 'Chemistry', 
+        subjects: ['Chemistry', 'Organic Chemistry', 'Physical Chemistry', 'Biochemistry'],
+        rating: 4.9, 
+        reviews: 201,
+        avatar: 'https://placehold.co/100x100.png', 
+        hint: 'female scientist', 
+        contact: '#',
+        experience: '9 years',
+        education: 'PhD in Chemistry, Cambridge University',
+        hourlyRate: 48,
+        availability: 'Mon-Fri 8AM-4PM',
+        language: ['English', 'Hindi', 'German'],
+        bio: 'Renowned chemistry professor with expertise in organic and physical chemistry. I simplify complex chemical concepts and make learning chemistry enjoyable and accessible.',
+        achievements: ['Chemistry Excellence Award', 'Research Publications', 'Innovation in Teaching'],
+        isAvailable: true,
+        responseTime: '< 1 hour',
+        totalStudents: 423
+    },
+    { 
+        id: 't6', 
+        name: 'Mr. Ben Carter', 
+        specialty: 'Physics', 
+        subjects: ['Physics', 'Quantum Physics', 'Mechanical Engineering', 'Astronomy'],
+        rating: 4.6, 
+        reviews: 143,
+        avatar: 'https://placehold.co/100x100.png', 
+        hint: 'friendly man', 
+        contact: '#',
+        experience: '5 years',
+        education: 'MSc in Physics, Caltech',
+        hourlyRate: 38,
+        availability: 'Tue-Sat 11AM-7PM',
+        language: ['English'],
+        bio: 'Physics enthusiast with a knack for explaining complex theories in simple terms. I help students understand the fundamental principles of physics through practical examples.',
+        achievements: ['Young Educator Award', 'Physics Olympiad Coach', 'STEM Advocate'],
+        isAvailable: false,
+        responseTime: '< 2 hours',
+        totalStudents: 234
+    },
+    { 
+        id: 't7', 
+        name: 'Dr. Maria Rodriguez', 
+        specialty: 'Computer Science', 
+        subjects: ['Programming', 'Data Science', 'Machine Learning', 'Web Development'],
+        rating: 4.8, 
+        reviews: 278,
+        avatar: 'https://placehold.co/100x100.png', 
+        hint: 'female programmer', 
+        contact: '#',
+        experience: '7 years',
+        education: 'PhD in Computer Science, UC Berkeley',
+        hourlyRate: 50,
+        availability: 'Mon-Wed 3PM-9PM',
+        language: ['English', 'Spanish', 'Portuguese'],
+        bio: 'Tech industry veteran turned educator. I specialize in programming, data science, and machine learning, helping students transition from beginners to proficient developers.',
+        achievements: ['Google Developer Expert', 'AI Research Pioneer', 'Tech Educator of the Year'],
+        isAvailable: true,
+        responseTime: '< 1 hour',
+        totalStudents: 512
+    },
+    { 
+        id: 't8', 
+        name: 'Mr. David Thompson', 
+        specialty: 'Economics', 
+        subjects: ['Economics', 'Business Studies', 'Finance', 'Statistics'],
+        rating: 4.7, 
+        reviews: 167,
+        avatar: 'https://placehold.co/100x100.png', 
+        hint: 'male business teacher', 
+        contact: '#',
+        experience: '6 years',
+        education: 'MBA in Finance, Harvard Business School',
+        hourlyRate: 44,
+        availability: 'Thu-Mon 12PM-8PM',
+        language: ['English', 'French'],
+        bio: 'Business professional with extensive experience in economics and finance. I help students understand market dynamics and economic principles through real-world applications.',
+        achievements: ['Harvard MBA', 'Wall Street Experience', 'Business Mentor Award'],
+        isAvailable: true,
+        responseTime: '< 3 hours',
+        totalStudents: 345
+    }
 ];
 
 export const leaderboardData = [
