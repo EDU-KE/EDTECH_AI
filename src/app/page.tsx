@@ -18,6 +18,7 @@ export default function HomePage() {
   const { user, loading, isDemoMode } = useAuth()
   const router = useRouter()
   const [forceShowPage, setForceShowPage] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
 
   // Force demo mode detection based on environment variable
   const isDemo = !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 
@@ -34,18 +35,27 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    // Redirect to dashboard if user is already authenticated
-    if (!loading && user) {
-      router.push("/dashboard")
+    // Mark auth as checked after initial load
+    if (!loading) {
+      setAuthChecked(true);
     }
-  }, [user, loading, router])
+  }, [loading]);
+
+  useEffect(() => {
+    // Redirect to dashboard if user is already authenticated
+    if (authChecked && user) {
+      console.log('Redirecting authenticated user to dashboard:', user.email);
+      router.push("/dashboard");
+    }
+  }, [user, authChecked, router])
 
   // Show loading while checking authentication - BUT force show page if emergency override
-  const shouldShowLoading = loading && !forceShowPage;
+  const shouldShowLoading = loading && !forceShowPage && !authChecked;
 
   console.log('HomePage render:', { 
     loading, 
     forceShowPage,
+    authChecked,
     isDemoMode, 
     isDemo, 
     shouldShowLoading, 
