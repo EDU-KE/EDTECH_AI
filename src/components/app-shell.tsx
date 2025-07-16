@@ -40,6 +40,7 @@ import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { SessionTimeoutDialog, SessionStatusIndicator } from "./session-timeout-dialog";
 import { useAuth } from "@/lib/auth-context";
 import { CurriculumThemeIndicator } from "./curriculum-theme-indicator";
+import { AIFloatingHelp } from "./ai-floating-help";
 
 interface AppShellProps {
   children: React.ReactNode
@@ -211,6 +212,9 @@ export function AppShell({ children, title }: AppShellProps) {
           <Footer />
         </main>
       </div>
+      
+      {/* AI Floating Help Button */}
+      <AIFloatingHelp />
     </div>
   )
 }
