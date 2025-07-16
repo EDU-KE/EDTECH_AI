@@ -39,6 +39,7 @@ import { AppShellClient } from "./app-shell-client";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { SessionTimeoutDialog, SessionStatusIndicator } from "./session-timeout-dialog";
 import { useAuth } from "@/lib/auth-context";
+import { CurriculumThemeIndicator } from "./curriculum-theme-indicator";
 
 interface AppShellProps {
   children: React.ReactNode
@@ -67,6 +68,7 @@ const mainNav = [
         { href: "/library", icon: Library, label: "Library Hub" },
         { href: "/exams", icon: FileQuestion, label: "Exams & Revision" },
         { href: "/tutors/online", icon: UsersRound, label: "Online Tutors" },
+        { href: "/theme-showcase", icon: BookMarked, label: "Theme Showcase" },
     ]},
     { title: "Teaching", items: [
         { href: "/class", icon: Presentation, label: "Live Class" },
@@ -121,6 +123,7 @@ export function AppShell({ children, title }: AppShellProps) {
               </Link>
             </div>
             <div className="flex items-center gap-2">
+              <CurriculumThemeIndicator />
               <SessionStatusIndicator />
               <UserNav />
             </div>
@@ -193,7 +196,8 @@ export function AppShell({ children, title }: AppShellProps) {
           <div className="flex-1">
             <h1 className="text-lg font-semibold">{title}</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            <CurriculumThemeIndicator />
             <SessionStatusIndicator />
             <UserNav />
           </div>

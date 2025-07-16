@@ -364,17 +364,19 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
                     <CardContent className="space-y-4">
                       {userProfile?.curriculum ? (
                         <div className="space-y-3">
-                          <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-md">
-                            <span className="text-2xl">{getCurriculumInfo(userProfile.curriculum)?.icon}</span>
+                          <div className={`flex items-center gap-3 p-4 rounded-lg ${getCurriculumInfo(userProfile.curriculum)?.theme.secondary} border ${getCurriculumInfo(userProfile.curriculum)?.theme.border}`}>
+                            <span className="text-3xl">{getCurriculumInfo(userProfile.curriculum)?.icon}</span>
                             <div>
-                              <div className="font-medium">{getCurriculumInfo(userProfile.curriculum)?.name}</div>
+                              <div className={`font-medium ${getCurriculumInfo(userProfile.curriculum)?.theme.accent}`}>
+                                {getCurriculumInfo(userProfile.curriculum)?.name}
+                              </div>
                               <div className="text-sm text-muted-foreground">{userProfile.curriculum}</div>
                             </div>
                           </div>
                           {userProfile.gradeLevel && (
-                            <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-md">
+                            <div className={`flex items-center gap-2 p-3 rounded-md ${getCurriculumInfo(userProfile.curriculum)?.theme.secondary} border ${getCurriculumInfo(userProfile.curriculum)?.theme.border}`}>
                               <BookOpen className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">Grade: {userProfile.gradeLevel}</span>
+                              <span className="text-sm font-medium">Grade: {userProfile.gradeLevel}</span>
                             </div>
                           )}
                         </div>
