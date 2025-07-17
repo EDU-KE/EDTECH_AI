@@ -548,13 +548,126 @@ export const onlineTutors: OnlineTutor[] = [
 ];
 
 export const leaderboardData = [
-  { rank: 1, name: 'Diana Miller', points: 12580, avatar: 'https://placehold.co/100x100.png', hint: 'student avatar' },
-  { rank: 2, name: 'Ethan Davis', points: 11950, avatar: 'https://placehold.co/100x100.png', hint: 'student avatar' },
-  { rank: 3, name: 'Alice Johnson', points: 11200, avatar: 'https://placehold.co/100x100.png', hint: 'student avatar' },
-  { rank: 4, name: 'Charlie Brown', points: 10540, avatar: 'https://placehold.co/100x100.png', hint: 'student avatar' },
-  { rank: 5, name: 'Bob Williams', points: 9870, avatar: 'https://placehold.co/100x100.png', hint: 'student avatar' },
-  { rank: 6, name: 'Frank White', points: 9500, avatar: 'https://placehold.co/100x100.png', hint: 'student avatar' },
-  { rank: 7, name: 'Grace Green', points: 8900, avatar: 'https://placehold.co/100x100.png', hint: 'student avatar' },
+  { 
+    rank: 1, 
+    name: 'Diana Miller', 
+    points: 12580, 
+    avatar: 'https://placehold.co/100x100.png', 
+    hint: 'student avatar',
+    grade: 'Grade 12',
+    subjects: ['Mathematics', 'Physics', 'Chemistry'],
+    streak: 28,
+    level: 'Expert',
+    badges: ['Math Genius', 'Perfect Attendance', 'Quick Learner']
+  },
+  { 
+    rank: 2, 
+    name: 'Ethan Davis', 
+    points: 11950, 
+    avatar: 'https://placehold.co/100x100.png', 
+    hint: 'student avatar',
+    grade: 'Grade 11',
+    subjects: ['Computer Science', 'Mathematics', 'English'],
+    streak: 22,
+    level: 'Advanced',
+    badges: ['Code Master', 'Problem Solver']
+  },
+  { 
+    rank: 3, 
+    name: 'Alice Johnson', 
+    points: 11200, 
+    avatar: 'https://placehold.co/100x100.png', 
+    hint: 'student avatar',
+    grade: 'Grade 12',
+    subjects: ['Biology', 'Chemistry', 'Mathematics'],
+    streak: 19,
+    level: 'Advanced',
+    badges: ['Science Star', 'Consistent Performer']
+  },
+  { 
+    rank: 4, 
+    name: 'Charlie Brown', 
+    points: 10540, 
+    avatar: 'https://placehold.co/100x100.png', 
+    hint: 'student avatar',
+    grade: 'Grade 10',
+    subjects: ['English', 'History', 'Geography'],
+    streak: 15,
+    level: 'Intermediate',
+    badges: ['Literature Lover', 'History Buff']
+  },
+  { 
+    rank: 5, 
+    name: 'Bob Williams', 
+    points: 9870, 
+    avatar: 'https://placehold.co/100x100.png', 
+    hint: 'student avatar',
+    grade: 'Grade 11',
+    subjects: ['Physics', 'Mathematics', 'Computer Science'],
+    streak: 12,
+    level: 'Intermediate',
+    badges: ['Tech Enthusiast']
+  },
+  { 
+    rank: 6, 
+    name: 'Frank White', 
+    points: 9500, 
+    avatar: 'https://placehold.co/100x100.png', 
+    hint: 'student avatar',
+    grade: 'Grade 9',
+    subjects: ['Mathematics', 'Science', 'English'],
+    streak: 11,
+    level: 'Intermediate',
+    badges: ['Rising Star', 'Dedicated Student']
+  },
+  { 
+    rank: 7, 
+    name: 'Grace Green', 
+    points: 8900, 
+    avatar: 'https://placehold.co/100x100.png', 
+    hint: 'student avatar',
+    grade: 'Grade 10',
+    subjects: ['Art', 'English', 'History'],
+    streak: 8,
+    level: 'Beginner',
+    badges: ['Creative Mind', 'Art Champion']
+  },
+  { 
+    rank: 8, 
+    name: 'Sarah Chen', 
+    points: 8650, 
+    avatar: 'https://placehold.co/100x100.png', 
+    hint: 'student avatar',
+    grade: 'Grade 11',
+    subjects: ['Chemistry', 'Biology', 'Mathematics'],
+    streak: 14,
+    level: 'Intermediate',
+    badges: ['Lab Expert']
+  },
+  { 
+    rank: 9, 
+    name: 'Michael Torres', 
+    points: 8320, 
+    avatar: 'https://placehold.co/100x100.png', 
+    hint: 'student avatar',
+    grade: 'Grade 9',
+    subjects: ['Geography', 'History', 'English'],
+    streak: 9,
+    level: 'Beginner',
+    badges: ['Explorer', 'Curious Learner']
+  },
+  { 
+    rank: 10, 
+    name: 'Emma Rodriguez', 
+    points: 7980, 
+    avatar: 'https://placehold.co/100x100.png', 
+    hint: 'student avatar',
+    grade: 'Grade 10',
+    subjects: ['Music', 'English', 'French'],
+    streak: 7,
+    level: 'Beginner',
+    badges: ['Music Maestro', 'Language Learner']
+  }
 ];
 
 export interface Contest {

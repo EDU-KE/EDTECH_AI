@@ -27,6 +27,7 @@ import { analyzeChatTone, type AnalyzeChatToneOutput } from "@/ai/flows/analyze-
 import { suggestChatResponse, type SuggestChatResponseOutput } from "@/ai/flows/suggest-chat-response";
 import { gradeExam, type GradeExamOutput } from "@/ai/flows/grade-exam";
 import { generatePresentation, type GeneratePresentationOutput } from "@/ai/flows/generate-presentation";
+import { generateSmartNotifications, type SmartNotificationsOutput } from "@/ai/flows/smart-notifications";
 import { z } from "zod"
 
 const tutorSchema = z.object({
@@ -612,5 +613,73 @@ export async function getPresentation(formData: FormData): Promise<{ presentatio
     } catch (error) {
         console.error(error);
         return { error: "An error occurred while generating the presentation." };
+    }
+}
+
+export async function getSmartNotifications(formData: FormData): Promise<{ success: boolean; data?: SmartNotificationsOutput; error?: string }> {
+    try {
+        // Mock data for demonstration - in production, this would come from your database
+        const mockStudentActivity = [
+            {
+                action: "study",
+                subject: "Mathematics",
+                timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+                duration: 45,
+                performance: 85
+            },
+            {
+                action: "exam",
+                subject: "Science",
+                timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+                duration: 60,
+                performance: 78
+            }
+        ];
+
+        const mockUpcomingDeadlines = [
+            {
+                title: "Physics Assignment",
+                subject: "Physics",
+                dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
+                priority: "high" as const,
+                completed: false
+            },
+            {
+                title: "History Essay",
+                subject: "History",
+                dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
+                priority: "medium" as const,
+                completed: false
+            }
+        ];
+
+        const mockPerformanceData = {
+            overallGrade: 82,
+            subjectScores: {
+                Mathematics: 85,
+                Science: 78,
+                English: 90,
+                History: 75
+            },
+            learningStreak: 7,
+            strugglingSubjects: ["History", "Science"],
+            improvingSubjects: ["Mathematics", "English"]
+        };
+
+        const result = await generateSmartNotifications({
+            studentActivity: mockStudentActivity,
+            upcomingDeadlines: mockUpcomingDeadlines,
+            performanceData: mockPerformanceData,
+            timeOfDay: new Date().toISOString(),
+            currentStreak: 7
+        });
+
+        return { success: true, data: result };
+    } catch (error) {
+        console.error("Error generating smart notifications:", error);
+        return { 
+            success: false, 
+            error: "An error occurred while generating smart notifications." 
+        };
     }
 }
