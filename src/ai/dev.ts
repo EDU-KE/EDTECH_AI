@@ -26,3 +26,4 @@ import '@/ai/flows/analyze-chat-tone.ts';
 import '@/ai/flows/suggest-chat-response.ts';
 import '@/ai/flows/grade-exam.ts';
 import '@/ai/flows/generate-presentation.ts';
+import '@/ai/flows/smart-notifications.ts';
