@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { Bot, FileQuestion, Loader2, Sparkles, Upload, MoreVertical, BrainCircuit, Computer, Pencil, Play } from "lucide-react";
+import { Bot, FileQuestion, Loader2, Sparkles, Upload, MoreVertical, BrainCircuit, Computer, Pencil, Play, Clock, Award, BookOpen, Target, TrendingUp, Star, Download, Eye, Share2, Calendar, Users, GraduationCap } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getGeneratedQuestions, getExamExplanation, getGradeExam } from "@/lib/actions";
 import { subjects, exams } from "@/lib/mock-data";
+import { useCurriculumTheme } from "@/hooks/use-curriculum-theme";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -60,6 +61,7 @@ export default function ExamsRevisionPage() {
     const [gradingResults, setGradingResults] = useState<GradeExamOutput | null>(null);
 
     const { toast } = useToast();
+    const { theme, curriculum, curriculumInfo } = useCurriculumTheme();
 
     const form = useForm<z.infer<typeof questionGeneratorSchema>>({
         resolver: zodResolver(questionGeneratorSchema),
@@ -133,36 +135,180 @@ export default function ExamsRevisionPage() {
 
     return (
         <AppShell title="Exams & Revision">
-            <Tabs defaultValue="library">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="library">Exam Library</TabsTrigger>
-                    <TabsTrigger value="generator">AI Question Generator</TabsTrigger>
+            {/* Hero Section with Statistics */}
+            <div className="relative mb-8">
+                <div 
+                    className="rounded-xl p-8 text-white relative overflow-hidden"
+                    style={{
+                        background: theme ? `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)` : 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)'
+                    }}
+                >
+                    <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+                    <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h1 className="text-3xl font-bold mb-2">
+                                    Exams & Revision
+                                </h1>
+                                <p className="text-white/90 text-lg">
+                                    Access {curriculum || 'your'} curriculum exams, practice tests, and AI-powered study tools
+                                </p>
+                                {curriculumInfo && (
+                                    <div className="mt-2 flex items-center gap-2">
+                                        <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                                            <GraduationCap className="h-3 w-3 mr-1" />
+                                            {curriculumInfo.name}
+                                        </Badge>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="hidden md:block">
+                                <Award className="h-16 w-16 text-white/60" />
+                            </div>
+                        </div>
+                        
+                        {/* Statistics Cards */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                                <div className="flex items-center gap-3">
+                                    <BookOpen className="h-8 w-8 text-white/80" />
+                                    <div>
+                                        <div className="text-2xl font-bold">{exams.length}</div>
+                                        <div className="text-sm text-white/80">Available Exams</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                                <div className="flex items-center gap-3">
+                                    <Target className="h-8 w-8 text-white/80" />
+                                    <div>
+                                        <div className="text-2xl font-bold">{subjects.length}</div>
+                                        <div className="text-sm text-white/80">Subjects</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                                <div className="flex items-center gap-3">
+                                    <Clock className="h-8 w-8 text-white/80" />
+                                    <div>
+                                        <div className="text-2xl font-bold">24/7</div>
+                                        <div className="text-sm text-white/80">AI Support</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                                <div className="flex items-center gap-3">
+                                    <Star className="h-8 w-8 text-white/80" />
+                                    <div>
+                                        <div className="text-2xl font-bold">95%</div>
+                                        <div className="text-sm text-white/80">Success Rate</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <Tabs defaultValue="library" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-8">
+                    <TabsTrigger value="library" className="text-lg py-3">
+                        <BookOpen className="mr-2 h-5 w-5" />
+                        Exam Library
+                    </TabsTrigger>
+                    <TabsTrigger value="generator" className="text-lg py-3">
+                        <Sparkles className="mr-2 h-5 w-5" />
+                        AI Question Generator
+                    </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="library">
-                    <Card>
+                <TabsContent value="library" className="space-y-6">
+                    {/* Quick Actions */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20">
+                            <CardContent className="p-6">
+                                <div className="flex items-center gap-4">
+                                    <div 
+                                        className="p-3 rounded-lg"
+                                        style={{
+                                            background: theme ? `linear-gradient(135deg, ${theme.primary}20, ${theme.secondary}20)` : 'linear-gradient(135deg, hsl(var(--primary))/20, hsl(var(--secondary))/20)'
+                                        }}
+                                    >
+                                        <Play className="h-6 w-6" style={{ color: theme?.primary || 'hsl(var(--primary))' }} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold">Take Quick Test</h3>
+                                        <p className="text-sm text-muted-foreground">Start a practice exam</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        
+                        <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20">
+                            <CardContent className="p-6">
+                                <div className="flex items-center gap-4">
+                                    <div 
+                                        className="p-3 rounded-lg"
+                                        style={{
+                                            background: theme ? `linear-gradient(135deg, ${theme.primary}20, ${theme.secondary}20)` : 'linear-gradient(135deg, hsl(var(--primary))/20, hsl(var(--secondary))/20)'
+                                        }}
+                                    >
+                                        <TrendingUp className="h-6 w-6" style={{ color: theme?.primary || 'hsl(var(--primary))' }} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold">View Progress</h3>
+                                        <p className="text-sm text-muted-foreground">Track your performance</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20 cursor-pointer">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center gap-4">
+                                            <div 
+                                                className="p-3 rounded-lg"
+                                                style={{
+                                                    background: theme ? `linear-gradient(135deg, ${theme.primary}20, ${theme.secondary}20)` : 'linear-gradient(135deg, hsl(var(--primary))/20, hsl(var(--secondary))/20)'
+                                                }}
+                                            >
+                                                <Upload className="h-6 w-6" style={{ color: theme?.primary || 'hsl(var(--primary))' }} />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold">Upload Exam</h3>
+                                                <p className="text-sm text-muted-foreground">Add your own exam</p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Upload Exam Document</DialogTitle>
+                                    <DialogDescription>
+                                        Upload a PDF or document file. This feature is for demonstration purposes.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                    <Input id="exam-file" type="file" />
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+
+                    {/* Exam Library */}
+                    <Card className="border-2">
                         <CardHeader>
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <CardTitle>Available Exams</CardTitle>
-                                    <CardDescription>Browse official exams and practice tests.</CardDescription>
+                                    <CardTitle className="text-2xl">Exam Library</CardTitle>
+                                    <CardDescription className="text-lg">Browse official exams and practice tests for your curriculum</CardDescription>
                                 </div>
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button><Upload className="mr-2 h-4 w-4" /> Upload Exam</Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>Upload Exam Document</DialogTitle>
-                                            <DialogDescription>
-                                                Upload a PDF or document file. This feature is for demonstration purposes.
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <div className="grid gap-4 py-4">
-                                            <Input id="exam-file" type="file" />
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
+                                <Badge variant="outline" className="px-3 py-1">
+                                    {Object.keys(examsBySubject).length} Subjects • {exams.length} Exams
+                                </Badge>
                             </div>
                         </CardHeader>
                         <CardContent>
