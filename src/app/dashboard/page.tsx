@@ -6,6 +6,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { DashboardCard } from "@/components/dashboard-card";
 import { SubjectCard } from "@/components/subject-card";
+import { SmartNotifications } from "@/components/smart-notifications";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { dashboardCards, subjects, type Subject } from "@/lib/mock-data";
@@ -166,6 +167,9 @@ export default function Dashboard() {
                     />
                 ))}
             </div>
+
+            {/* Smart Notifications Section */}
+            <SmartNotifications />
 
             <Card>
                 <CardHeader>
