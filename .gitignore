@@ -58,3 +58,6 @@ yarn-error.log*
 .firebase/**/functions/.next/cache/.firebase/
 .next/
 node_modules/
+google-cloud-cli-438.0.0-linux-x86_64.tar.gz
+google-cloud-sdk/bin/anthoscli
+google-cloud-sdk/data/cli/gcloud.json
