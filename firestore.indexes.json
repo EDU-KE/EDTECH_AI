@@ -1,29 +1,23 @@
 {
   "indexes": [
     {
-      "collectionGroup": "students",
+      "collectionGroup": "classNotes",
       "queryScope": "COLLECTION",
       "fields": [
+        {
+          "fieldPath": "subject",
+          "order": "ASCENDING"
+        },
         {
           "fieldPath": "gradeLevel",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "enrollmentDate",
+          "fieldPath": "createdAt",
           "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "students",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "status",
-          "order": "ASCENDING"
         },
         {
-          "fieldPath": "lastActive",
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ]
@@ -42,6 +36,10 @@
         },
         {
           "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ]
@@ -61,6 +59,46 @@
         {
           "fieldPath": "score",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "leaderboard",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "gradeLevel",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "points",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "learningProgress",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastUpdated",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
         }
       ]
     },
@@ -79,11 +117,15 @@
         {
           "fieldPath": "completionStatus",
           "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
         }
       ]
     },
     {
-      "collectionGroup": "learningProgress",
+      "collectionGroup": "recommendations",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -91,39 +133,15 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "lastUpdated",
+          "fieldPath": "subject",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "relevanceScore",
           "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "tutoringSessionMessages",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "sessionId",
-          "order": "ASCENDING"
         },
         {
-          "fieldPath": "timestamp",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "tutoringSessions",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "studentId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "status",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "startTime",
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ]
@@ -143,11 +161,15 @@
         {
           "fieldPath": "timestamp",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
         }
       ]
     },
     {
-      "collectionGroup": "leaderboard",
+      "collectionGroup": "students",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -155,43 +177,69 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "points",
+          "fieldPath": "enrollmentDate",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ]
     },
     {
-      "collectionGroup": "classNotes",
+      "collectionGroup": "students",
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "subject",
+          "fieldPath": "status",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "gradeLevel",
-          "order": "ASCENDING"
+          "fieldPath": "lastActive",
+          "order": "DESCENDING"
         },
         {
-          "fieldPath": "createdAt",
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ]
     },
     {
-      "collectionGroup": "recommendations",
+      "collectionGroup": "tutoringSessionMessages",
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "userId",
+          "fieldPath": "sessionId",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "subject",
+          "fieldPath": "timestamp",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "relevanceScore",
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "tutoringSessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "studentId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "startTime",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "DESCENDING"
         }
       ]

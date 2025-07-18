@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Test</title>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "",
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        
+        // Connect to auth emulator
+        if (location.hostname === "localhost") {
+            firebase.auth().useEmulator('http://localhost:9099');
+        }
+
+        function testPopupSignIn() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithPopup(provider)
+                .then((result) => {
+                    console.log('Popup sign-in successful:', result.user.email);
+                    document.getElementById('status').textContent = '✅ Popup sign-in successful';
+                })
+                .catch((error) => {
+                    console.error('Popup sign-in error:', error);
+                    document.getElementById('status').textContent = '❌ Error: ' + error.message;
+                    // Try redirect if popup fails
+                    if (error.code === 'auth/popup-blocked') {
+                        testRedirectSignIn();
+                    }
+                });
+        }
+
+        function testRedirectSignIn() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithRedirect(provider)
+                .catch((error) => {
+                    console.error('Redirect sign-in error:', error);
+                    document.getElementById('status').textContent = '❌ Error: ' + error.message;
+                });
+        }
+
+        // Check for redirect result
+        firebase.auth().getRedirectResult()
+            .then((result) => {
+                if (result.user) {
+                    console.log('Redirect sign-in successful:', result.user.email);
+                    document.getElementById('status').textContent = '✅ Redirect sign-in successful';
+                }
+            })
+            .catch((error) => {
+                console.error('Redirect result error:', error);
+            });
+    </script>
+</head>
+<body>
+    <h2>Google Auth Test</h2>
+    <button onclick="testPopupSignIn()">Test Popup Sign-in</button>
+    <button onclick="testRedirectSignIn()">Test Redirect Sign-in</button>
+    <div id="status"></div>
+</body>
+</html>

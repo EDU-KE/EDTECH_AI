@@ -1,0 +1,9 @@
+{
+  "authorizedDomains": [
+    "localhost",
+    "127.0.0.1",
+    "last-35eb7.web.app",
+    "last-35eb7.firebaseapp.com",
+    "jktk.web.app"
+  ]
+}

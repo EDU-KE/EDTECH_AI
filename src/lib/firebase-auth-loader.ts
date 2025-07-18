@@ -35,9 +35,6 @@ export class FirebaseAuthLoader {
     try {
       console.log('🔄 Initializing Firebase Auth...');
       
-      // Pre-load required Firebase auth scripts
-      await this.preloadFirebaseAuthScripts();
-      
       // Wait a bit to ensure scripts are loaded
       await new Promise(resolve => setTimeout(resolve, 500));
       
@@ -83,6 +80,7 @@ export class FirebaseAuthLoader {
         const script = document.createElement('script');
         script.src = src;
         script.async = true;
+        script.type = 'module';
         script.crossOrigin = 'anonymous';
         
         script.onload = () => resolve();

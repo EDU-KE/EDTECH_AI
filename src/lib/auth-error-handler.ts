@@ -13,83 +13,83 @@ export const getAuthErrorMessage = (errorCode: string): AuthError => {
     // Email/Password Authentication Errors
     case 'auth/invalid-credential':
       return {
-        title: '🔐 Invalid Credentials',
-        message: 'The email or password you entered is incorrect. Please check your credentials and try again.',
+        title: 'Invalid Login Details',
+        message: 'The email or password you entered doesn\'t match our records. Please try again.',
         type: 'error',
-        action: 'Double-check your email and password'
+        action: 'Check your email and password, then try again'
       };
 
     case 'auth/user-not-found':
       return {
-        title: '👤 Account Not Found',
-        message: 'No account found with this email address. Would you like to create a new account?',
+        title: 'Account Not Found',
+        message: 'We couldn\'t find an account with that email. Would you like to create one?',
         type: 'warning',
-        action: 'Try signing up instead'
+        action: 'Click here to create an account'
       };
 
     case 'auth/wrong-password':
       return {
-        title: '🔑 Incorrect Password',
-        message: 'The password you entered is incorrect. Please try again or reset your password.',
+        title: 'Incorrect Password',
+        message: 'The password you entered doesn\'t match this account. Need help getting back in?',
         type: 'error',
-        action: 'Try again or reset password'
+        action: 'Reset your password'
       };
 
     case 'auth/invalid-email':
       return {
-        title: '📧 Invalid Email',
-        message: 'Please enter a valid email address.',
+        title: 'Invalid Email Format',
+        message: 'This doesn\'t look like a valid email address. Please check and try again.',
         type: 'error',
-        action: 'Check email format'
+        action: 'Check your email address'
       };
 
     case 'auth/user-disabled':
       return {
-        title: '🚫 Account Disabled',
-        message: 'This account has been disabled. Please contact support for assistance.',
+        title: 'Account Access Limited',
+        message: 'Your account access has been temporarily limited. Please contact our support team for help.',
         type: 'error',
-        action: 'Contact support'
+        action: 'Contact Support'
       };
 
     case 'auth/too-many-requests':
       return {
-        title: '⏰ Too Many Attempts',
-        message: 'Too many failed sign-in attempts. Please wait a few minutes before trying again.',
+        title: 'Account Protected',
+        message: 'For your security, we\'ve temporarily limited access to this account. Please try again in a few minutes.',
         type: 'warning',
-        action: 'Wait and try again later'
+        action: 'Try again later or reset password'
       };
 
     // Google OAuth Errors
     case 'auth/popup-closed-by-user':
       return {
-        title: '❌ Sign-in Cancelled',
-        message: 'Google sign-in was cancelled. Please try again if you want to sign in.',
+        title: 'Sign-in Cancelled',
+        message: 'You closed the Google sign-in window. Click the Google sign-in button to try again.',
         type: 'info',
-        action: 'Try again'
+        action: 'Click to try again'
       };
 
     case 'auth/popup-blocked':
       return {
-        title: '🚫 Popup Blocked',
-        message: 'Your browser blocked the sign-in popup. We\'ll redirect you instead.',
+        title: 'Pop-up Blocked',
+        message: 'We couldn\'t open the Google sign-in window. We\'ll try a different method.',
         type: 'info',
-        action: 'Allow popups or wait for redirect'
+        action: 'Continue with redirect sign-in'
       };
 
     case 'auth/unauthorized-domain':
       return {
-        title: '🌐 Domain Not Authorized',
-        message: 'This domain is not authorized for Google sign-in. Please contact support.',
+        title: 'Security Check',
+        message: 'For your security, Google sign-in is only available on authorized websites. Please try a different sign-in method.',
         type: 'error',
-        action: 'Contact support'
+        action: 'Try another sign-in method'
       };
 
     case 'auth/internal-error':
       return {
-        title: '⚙️ Google OAuth Not Configured',
-        message: 'Google sign-in is not properly configured in Firebase. Please enable Google authentication in the Firebase Console.',
+        title: 'Temporary Issue',
+        message: 'We\'re having trouble connecting to Google. Please try again in a few moments.',
         type: 'error',
-        action: 'Configure Google OAuth in Firebase Console'
+        action: 'Try again later'
       };
 
     case 'auth/oauth-not-configured':
@@ -137,10 +137,10 @@ export const getAuthErrorMessage = (errorCode: string): AuthError => {
     // Default case for unknown errors
     default:
       return {
-        title: '❓ Authentication Error',
-        message: 'An unexpected error occurred during sign-in. Please try again.',
+        title: 'Sign-in Issue',
+        message: 'We encountered an unexpected issue while signing you in. Please try again.',
         type: 'error',
-        action: 'Try again'
+        action: 'Try again or contact our support team'
       };
   }
 };

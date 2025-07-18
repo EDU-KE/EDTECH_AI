@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Auth Diagnostic</title>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth.js"></script>
+    <style>
+        .log { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h2>Google Auth Diagnostic</h2>
+    <div id="logs"></div>
+    <button onclick="testAuth()">Test Google Auth</button>
+    <script>
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'log ' + type;
+            div.textContent = message;
+            document.getElementById('logs').appendChild(div);
+        }
+
+        async function testAuth() {
+            try {
+                log('Testing Google Auth...');
+                
+                // Initialize Firebase
+                const firebaseConfig = {
+                    apiKey: '',
+                    authDomain: 'last-35eb7.firebaseapp.com',
+                    projectId: 'last-35eb7'
+                };
+                
+                log('Initializing Firebase...');
+                const app = firebase.initializeApp(firebaseConfig);
+                
+                log('Creating Google Auth Provider...');
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('email');
+                provider.addScope('profile');
+                
+                log('Setting custom parameters...');
+                provider.setCustomParameters({
+                    prompt: 'select_account'
+                });
+                
+                log('Starting sign-in process...');
+                const auth = firebase.auth();
+                const result = await auth.signInWithPopup(provider);
+                
+                log('Sign-in successful! User: ' + result.user.email, 'success');
+                
+            } catch (error) {
+                log('Error: ' + error.message, 'error');
+                log('Error code: ' + error.code, 'error');
+                console.error('Detailed error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

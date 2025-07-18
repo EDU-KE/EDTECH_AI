@@ -31,13 +31,83 @@ export interface GoogleSignInResult {
 
 class GoogleAuthService {
   private provider: GoogleAuthProvider;
+  private retryAttempts = 3;
+  private retryDelay = 1000; // 1 second
   
   constructor() {
     this.provider = new GoogleAuthProvider();
     this.setupProvider();
   }
 
+  private async handleSignInError(error: any) {
+    console.error('Google Sign-in Error:', error);
+    
+    if (error.code === 'auth/popup-blocked') {
+      console.log('Popup was blocked, trying redirect method...');
+      return this.signInWithRedirect();
+    }
+    
+    if (error.code === 'auth/internal-error') {
+      console.log('Internal error, checking auth configuration...');
+      const config = auth.app.options;
+      
+      // Check configuration
+      if (!config.apiKey || !config.authDomain) {
+        console.error('Firebase Configuration:', {
+          apiKey: config.apiKey ? '✓ Set' : '✗ Missing',
+          authDomain: config.authDomain ? '✓ Set' : '✗ Missing',
+          projectId: config.projectId ? '✓ Set' : '✗ Missing'
+        });
+        throw new Error('Invalid Firebase configuration. Missing required auth settings.');
+      }
+      
+      // Check domain authorization
+      const currentDomain = window.location.hostname;
+      const requiredDomains = [
+        'localhost',
+        '127.0.0.1',
+        `${process.env.CODESPACE_NAME || ''}-3000.app.github.dev`,
+        '*.githubpreview.dev',
+        '*.app.github.dev'
+      ].filter(Boolean);
+      
+      console.log('Domain Check:', {
+        current: currentDomain,
+        required: requiredDomains,
+        authDomain: config.authDomain
+      });
+      
+      const isValidDomain = currentDomain === 'localhost' ||
+                           currentDomain === '127.0.0.1' ||
+                           currentDomain.includes('.githubpreview.dev') ||
+                           currentDomain.includes('.app.github.dev') ||
+                           currentDomain.includes('-3000.') ||
+                           config.authDomain.includes(currentDomain);
+                           
+      if (!isValidDomain) {
+        console.error(`
+🚨 Auth Domain Mismatch
+Current domain: ${currentDomain}
+Auth domain: ${config.authDomain}
+
+Required domains to add in Firebase Console:
+${requiredDomains.map(d => `- ${d}`).join('\n')}
+
+Go to: https://console.firebase.google.com/project/${config.projectId}/authentication/settings
+`);
+      }
+    }
+    
+    throw error;
+  }
+
   private setupProvider() {
+    // Add additional scopes for Google sign-in
+    this.provider.addScope('profile');
+    this.provider.addScope('email');
+    this.provider.setCustomParameters({
+      prompt: 'select_account'
+    });
     // Configure Google provider
     this.provider.addScope('email');
     this.provider.addScope('profile');

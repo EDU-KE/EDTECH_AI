@@ -21,12 +21,35 @@ const checkDemoMode = (): boolean => {
   
   // Client-side: check if Firebase is properly configured
   try {
-    const hasValidConfig = process.env.NEXT_PUBLIC_FIREBASE_API_KEY && 
-                          process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "your_api_key_here" &&
-                          process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "";
+    const config = {
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    };
+    
+    // Log configuration for debugging (without sensitive values)
+    console.log('Firebase Config Check:', {
+      apiKey: config.apiKey ? '✓ Set' : '✗ Missing',
+      authDomain: config.authDomain ? '✓ Set' : '✗ Missing',
+      projectId: config.projectId ? '✓ Set' : '✗ Missing'
+    });
+    
+    const hasValidConfig = config.apiKey && 
+                          config.apiKey !== "your_api_key_here" &&
+                          config.apiKey !== "" &&
+                          config.authDomain &&
+                          config.authDomain !== "your_auth_domain_here" &&
+                          config.projectId &&
+                          config.projectId !== "your_project_id_here";
+                          
+    if (!hasValidConfig) {
+      console.warn('Invalid Firebase configuration detected');
+      console.log('Current domain:', window.location.hostname);
+    }
+    
     return !hasValidConfig;
-  } catch {
-    console.warn('Firebase configuration check failed, falling back to demo mode');
+  } catch (error) {
+    console.error('Firebase configuration check failed:', error);
     return true; // Default to demo mode if there's any error
   }
 };
