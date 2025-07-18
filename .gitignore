@@ -19,15 +19,30 @@ dist/
 .cache/
 .nyc_output/
 coverage/
+.next/cache/
+.next/**/*.pack
+.next/**/*.pack.gz
 
 # --- Firebase ---
 .firebase/
 firebase-debug.log
 firestore-debug.log
+.firebase/**/functions/.next/
+.firebase/**/functions/node_modules/
+.firebase/**/functions/.next/cache/
+
+# --- Google Cloud SDK ---
+google-cloud-cli-*.tar.gz
+google-cloud-sdk/
+google-cloud-sdk/bin/anthoscli
+google-cloud-sdk/data/cli/gcloud.json
+google-cloud-sdk/**/*.json
+google-cloud-sdk/**/*.gz
+google-cloud-sdk/**/*.tar
+google-cloud-sdk/**/*.zip
 
 # --- Next.js specific ---
 .next/
-.next/cache/
 next-env.d.ts
 
 # --- Logs & Debug ---
@@ -35,6 +50,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .DS_Store
+*.log
 
 # --- TypeScript ---
 *.tsbuildinfo
@@ -45,16 +61,29 @@ yarn-error.log*
 # --- Environment ---
 .env
 .env.*
+.env.local
+.env.development
+.env.test
+.env.production
 
 # --- Custom/Generated ---
 .genkit/
 
 # --- Misc (system files etc.) ---
 *.pem
+*.zip
+*.tar.gz
+*.tar
+*.gz
+*.rar
+*.7z
+*.pack
+*.pack.gz
 
-# --- Ignore functions output inside Firebase ---
-.firebase/**/functions/.next/
-.firebase/**/functions/node_modules/
-.firebase/**/functions/.next/cache/.firebase/
-.next/
-node_modules/
+# --- Large Files (>50MB) ---
+**/*.pack
+**/*.pack.gz
+**/node_modules/.cache
+**/webpack/client-production/*.pack
+**/webpack/server-production/*.pack
+**/webpack/server-development/*.pack.gz
